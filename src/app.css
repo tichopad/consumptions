@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body, body > div, body > div > * {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+}
