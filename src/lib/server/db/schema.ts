@@ -1,13 +1,14 @@
-import { relations, sql } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import hyperid from 'hyperid';
+import { z } from 'zod';
 
 // -- ID --
 
-type ID = { __brand: 'ID' } & string;
+export type ID = string & z.BRAND<'ID'>;
 const createId = hyperid({ urlSafe: true });
-const id = () => createId() as ID;
+export const id = () => createId() as ID;
 const primaryIdColumn = text('id').primaryKey().notNull().$defaultFn(id).$type<ID>();
 
 // -- Boolean --
@@ -32,8 +33,12 @@ export const buildingsRelations = relations(buildings, ({ many }) => ({
 	energyBills: many(energyBills)
 }));
 
-export const selectBuildingSchema = createSelectSchema(buildings);
-export const insertBuildingSchema = createInsertSchema(buildings);
+export const selectBuildingSchema = createSelectSchema(buildings, {
+	id: (schema) => schema.id.brand<'ID'>()
+});
+export const insertBuildingSchema = createInsertSchema(buildings, {
+	id: (schema) => schema.id.brand<'ID'>()
+});
 
 export type Building = typeof buildings.$inferSelect;
 export type BuildingInsert = typeof buildings.$inferInsert;
@@ -64,8 +69,14 @@ export const occupantsRelations = relations(occupants, ({ one, many }) => ({
 	measuringDevices: many(measuringDevices)
 }));
 
-export const selectOccupantSchema = createSelectSchema(occupants);
-export const insertOccupantSchema = createInsertSchema(occupants);
+export const selectOccupantSchema = createSelectSchema(occupants, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	buildingId: (schema) => schema.buildingId.brand<'ID'>()
+});
+export const insertOccupantSchema = createInsertSchema(occupants, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	buildingId: (schema) => schema.buildingId.brand<'ID'>()
+});
 
 export type Occupant = typeof occupants.$inferSelect;
 export type OccupantInsert = typeof occupants.$inferInsert;
@@ -90,8 +101,14 @@ export const measuringDevicesRelations = relations(measuringDevices, ({ one, man
 	consumptionRecords: many(consumptionRecords)
 }));
 
-export const selectMeasuringDeviceSchema = createSelectSchema(measuringDevices);
-export const insertMeasuringDeviceSchema = createInsertSchema(measuringDevices);
+export const selectMeasuringDeviceSchema = createSelectSchema(measuringDevices, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	occupantId: (schema) => schema.occupantId.brand<'ID'>()
+});
+export const insertMeasuringDeviceSchema = createInsertSchema(measuringDevices, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	occupantId: (schema) => schema.occupantId.brand<'ID'>()
+});
 
 export type MeasuringDevice = typeof measuringDevices.$inferSelect;
 export type MeasuringDeviceInsert = typeof measuringDevices.$inferInsert;
@@ -100,12 +117,8 @@ export type MeasuringDeviceInsert = typeof measuringDevices.$inferInsert;
 
 export const consumptionRecords = sqliteTable('consumptionRecords', {
 	id: primaryIdColumn,
-	startDate: text('startDate')
-		.notNull()
-		.default(sql`CURRENT_DATE`),
-	endDate: text('endDate')
-		.notNull()
-		.default(sql`CURRENT_DATE`),
+	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
+	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
 	unmeasured: booleanColumn('unmeasured').notNull().default(false),
 	consumption: real('consumption'),
 	measuringDeviceId: text('measuringDeviceId')
@@ -120,8 +133,14 @@ export const consumptionRecordsRelations = relations(consumptionRecords, ({ one 
 	})
 }));
 
-export const selectConsumptionRecordSchema = createSelectSchema(consumptionRecords);
-export const insertConsumptionRecordSchema = createInsertSchema(consumptionRecords);
+export const selectConsumptionRecordSchema = createSelectSchema(consumptionRecords, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	measuringDeviceId: (schema) => schema.measuringDeviceId.brand<'ID'>()
+});
+export const insertConsumptionRecordSchema = createInsertSchema(consumptionRecords, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	measuringDeviceId: (schema) => schema.measuringDeviceId.brand<'ID'>()
+});
 
 export type ConsumptionRecord = typeof consumptionRecords.$inferSelect;
 export type ConsumptionRecordInsert = typeof consumptionRecords.$inferInsert;
@@ -133,12 +152,9 @@ export const energyBills = sqliteTable('energyBills', {
 	energyType: text('energyType', { enum: energyTypes }).notNull(),
 	totalCost: real('totalCost').notNull(),
 	fixedCost: real('fixedCost'),
-	startDate: text('startDate')
-		.notNull()
-		.default(sql`CURRENT_DATE`),
-	endDate: text('endDate')
-		.notNull()
-		.default(sql`CURRENT_DATE`),
+	startDate: integer('startDate', { mode: 'timestamp' }) //TODO: validate it's a date
+		.notNull(),
+	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
 	buildingId: text('buildingId')
 		.notNull()
 		.references(() => buildings.id)
@@ -152,8 +168,14 @@ export const energyBillsRelations = relations(energyBills, ({ one }) => ({
 	})
 }));
 
-export const selectEnergyBillSchema = createSelectSchema(energyBills);
-export const insertEnergyBillSchema = createInsertSchema(energyBills);
+export const selectEnergyBillSchema = createSelectSchema(energyBills, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	buildingId: (schema) => schema.buildingId.brand<'ID'>()
+});
+export const insertEnergyBillSchema = createInsertSchema(energyBills, {
+	id: (schema) => schema.id.brand<'ID'>(),
+	buildingId: (schema) => schema.buildingId.brand<'ID'>()
+});
 
 export type EnergyBill = typeof energyBills.$inferSelect;
 export type EnergyBillInsert = typeof energyBills.$inferInsert;

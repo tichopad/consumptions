@@ -1,24 +1,25 @@
-import { createBuilding } from '$lib/models';
-import { redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
-import { z } from 'zod';
-
-const schema = z.object({
-  name: z.coerce.string(),
-  squareMeters: z.coerce.number(),
-});
+import { db } from '$lib/server/db/client';
+import { buildings, insertBuildingSchema } from '$lib/server/db/schema';
+import { redirect, type Actions } from '@sveltejs/kit';
 
 export const actions = {
 	default: async (event) => {
-    const formData = await event.request.formData();
-    const data = Object.fromEntries(formData);
+		const formDataEntries = await event.request.formData();
+		const formData = Object.fromEntries(formDataEntries);
 
-    const { name, squareMeters } = schema.parse(data);
+		const parsed = insertBuildingSchema.safeParse(formData);
 
-    const building = createBuilding({ name, squareMeters });
+		if (!parsed.success) {
+			return {
+				status: 400,
+				body: parsed.error.errors
+			};
+		}
 
-    console.log('Created building', building);
+		const [building] = await db.insert(buildings).values(parsed.data).returning();
 
-    return redirect(302, `/building/${building.id}`)
-  }
+		console.log('Created building', building);
+
+		return redirect(302, `/building/${building.id}`);
+	}
 } satisfies Actions;

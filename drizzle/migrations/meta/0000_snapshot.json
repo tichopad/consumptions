@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "35aeab0c-f1d6-497b-9989-6eff72494cb0",
+  "id": "91cae68d-f559-44a0-ac5b-7ebdeb8a63d7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "buildings": {
@@ -46,19 +46,17 @@
         },
         "startDate": {
           "name": "startDate",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_DATE"
+          "autoincrement": false
         },
         "endDate": {
           "name": "endDate",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_DATE"
+          "autoincrement": false
         },
         "unmeasured": {
           "name": "unmeasured",
@@ -135,19 +133,17 @@
         },
         "startDate": {
           "name": "startDate",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_DATE"
+          "autoincrement": false
         },
         "endDate": {
           "name": "endDate",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_DATE"
+          "autoincrement": false
         },
         "buildingId": {
           "name": "buildingId",

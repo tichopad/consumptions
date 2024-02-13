@@ -1,8 +1,8 @@
-import { listBuildings } from '$lib/models';
+import { db } from '$lib/server/db/client';
 import type { Load } from '@sveltejs/kit';
 
-export const load: Load = () => {
+export const load: Load = async () => {
 	return {
-		buildings: listBuildings()
+		buildings: await db.query.buildings.findMany()
 	};
 };

@@ -6,8 +6,8 @@ CREATE TABLE `buildings` (
 --> statement-breakpoint
 CREATE TABLE `consumptionRecords` (
 	`id` text PRIMARY KEY NOT NULL,
-	`startDate` text DEFAULT CURRENT_DATE NOT NULL,
-	`endDate` text DEFAULT CURRENT_DATE NOT NULL,
+	`startDate` integer NOT NULL,
+	`endDate` integer NOT NULL,
 	`unmeasured` integer DEFAULT false NOT NULL,
 	`consumption` real,
 	`measuringDeviceId` text,
@@ -19,8 +19,8 @@ CREATE TABLE `energyBills` (
 	`energyType` text NOT NULL,
 	`totalCost` real NOT NULL,
 	`fixedCost` real,
-	`startDate` text DEFAULT CURRENT_DATE NOT NULL,
-	`endDate` text DEFAULT CURRENT_DATE NOT NULL,
+	`startDate` integer NOT NULL,
+	`endDate` integer NOT NULL,
 	`buildingId` text NOT NULL,
 	FOREIGN KEY (`buildingId`) REFERENCES `buildings`(`id`) ON UPDATE no action ON DELETE no action
 );

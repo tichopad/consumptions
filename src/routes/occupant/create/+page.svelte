@@ -27,13 +27,13 @@
 			/>
 		</div>
 		<div class="mb-4">
-			<label for="magicalConstant" class="block text-gray-700 text-sm font-bold mb-2"
-				>Magical constant:</label
+			<label for="heatingFixedCostShare" class="block text-gray-700 text-sm font-bold mb-2"
+				>Fixed cost share for heating:</label
 			>
 			<input
 				type="number"
-				id="magicalConstant"
-				name="magicalConstant"
+				id="heatingFixedCostShare"
+				name="heatingFixedCostShare"
 				class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 				required
 			/>
@@ -56,20 +56,15 @@
 				>Charged unmeasured share:</label
 			>
 			<div class="flex items-center">
-				<input
-					type="checkbox"
-					id="electricity"
-					name="chargedUnmeasuredShare.electricity"
-					class="mr-2"
-				/>
+				<input type="checkbox" id="electricity" name="chargedUnmeasuredElectricity" class="mr-2" />
 				<label for="electricity" class="text-gray-700 text-sm font-bold">Electricity</label>
 			</div>
 			<div class="flex items-center">
-				<input type="checkbox" id="water" name="chargedUnmeasuredShare.water" class="mr-2" />
+				<input type="checkbox" id="water" name="chargedUnmeasuredHeating" class="mr-2" />
 				<label for="water" class="text-gray-700 text-sm font-bold">Water</label>
 			</div>
 			<div class="flex items-center">
-				<input type="checkbox" id="heating" name="chargedUnmeasuredShare.heating" class="mr-2" />
+				<input type="checkbox" id="heating" name="chargedUnmeasuredWater" class="mr-2" />
 				<label for="heating" class="text-gray-700 text-sm font-bold">Heating</label>
 			</div>
 

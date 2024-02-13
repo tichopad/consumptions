@@ -4,11 +4,11 @@
 
 <main class="flex items-center justify-center h-screen">
 	<div class="flex flex-col gap-2">
-    <a href="/" class="hover:underline">Home</a>
+		<a href="/" class="hover:underline">Home</a>
 		<h1 class="text-2xl">Building List</h1>
-    <div>
-      <a href="/building/create" class="hover:underline">New Building</a>
-    </div>
+		<div>
+			<a href="/building/create" class="hover:underline">New Building</a>
+		</div>
 
 		{#if data.buildings.length === 0}
 			<p>No buildings found.</p>

@@ -1,43 +1,43 @@
-import { createOccupant, listBuildings } from '$lib/models';
+import { db } from '$lib/server/db/client';
+import { insertOccupantSchema, occupants } from '$lib/server/db/schema';
 import { redirect, type Load } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { z } from 'zod';
 
-export const load: Load = () => {
+export const load: Load = async () => {
 	return {
-		buildings: listBuildings()
+		buildings: await db.query.buildings.findMany()
 	};
 };
 
-const schema = z.object({
-	name: z.coerce.string(),
-	squareMeters: z.coerce.number(),
-	'chargedUnmeasuredShare.electricity': z.coerce.boolean().optional().default(false),
-	'chargedUnmeasuredShare.water': z.coerce.boolean().optional().default(false),
-	'chargedUnmeasuredShare.heating': z.coerce.boolean().optional().default(false),
-	magicalConstant: z.coerce.number().optional(),
-	building: z.coerce.string()
-});
-
 export const actions = {
 	default: async (event) => {
-		const formData = await event.request.formData();
-		const data = Object.fromEntries(formData);
+		const formDataEntries = await event.request.formData();
+		const formData = Object.fromEntries(formDataEntries);
 
-		console.log('Form data', data);
+		console.log('Form data', formData);
 
-		const safeData = schema.parse(data);
+		const parsed = insertOccupantSchema.safeParse(formData); //FIXME: these fields need to be coerced
 
-		const occupant = createOccupant({
-			name: safeData.name,
-			squareMeters: safeData.squareMeters,
-			chargedUnmeasuredShare: {
-				electricity: safeData['chargedUnmeasuredShare.electricity'],
-				water: safeData['chargedUnmeasuredShare.water'],
-				heating: safeData['chargedUnmeasuredShare.heating']
-			},
-			magicalConstant: safeData.magicalConstant
-		});
+		if (!parsed.success) {
+			console.log('Invalid data', parsed.error);
+			return {
+				status: 400,
+				body: parsed.error.errors
+			};
+		}
+
+		const [occupant] = await db
+			.insert(occupants)
+			.values({
+				buildingId: parsed.data.buildingId,
+				name: parsed.data.name,
+				squareMeters: parsed.data.squareMeters,
+				chargedUnmeasuredElectricity: parsed.data.chargedUnmeasuredElectricity,
+				chargedUnmeasuredHeating: parsed.data.chargedUnmeasuredHeating,
+				chargedUnmeasuredWater: parsed.data.chargedUnmeasuredWater,
+				heatingFixedCostShare: parsed.data.heatingFixedCostShare
+			})
+			.returning();
 
 		console.log('Created occupant', occupant);
 
