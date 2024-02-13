@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1707854011345,
+      "tag": "0000_quick_randall_flagg",
+      "breakpoints": true
+    }
+  ]
+}
