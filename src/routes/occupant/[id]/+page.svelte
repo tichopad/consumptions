@@ -56,7 +56,7 @@
 
 				<label for="type" class="text-lg font-semibold mt-4">Type:</label>
 				<select id="type" name="type" class="border border-gray-300 rounded-md px-2 py-1 w-64">
-					{#each energyTypes as type (type)}
+					{#each energyTypes as type}
 						<option value={type}>{type}</option>
 					{/each}
 				</select>
