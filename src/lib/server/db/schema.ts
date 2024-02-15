@@ -1,27 +1,13 @@
+import { energyTypes, id, type ID } from '$lib/helpers';
 import { relations } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { customAlphabet } from 'nanoid';
 import { z } from 'zod';
 
-// -- ID --
+// -- Column types --
 
-export type ID = string & z.BRAND<'ID'>;
-const createId = customAlphabet(
-	'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-	11
-);
-export const id = () => createId() as ID;
 const primaryIdColumn = text('id').primaryKey().notNull().$defaultFn(id).$type<ID>();
-
-// -- Boolean --
-
 const booleanColumn = (colName: string) => integer(colName, { mode: 'boolean' });
-
-// -- Energy Types --
-
-const energyTypes = ['electricity', 'heating', 'water'] as const;
-export type EnergyType = (typeof energyTypes)[number];
 
 // -- Building --
 
@@ -163,8 +149,7 @@ export const energyBills = sqliteTable('energyBills', {
 	energyType: text('energyType', { enum: energyTypes }).notNull(),
 	totalCost: real('totalCost').notNull(),
 	fixedCost: real('fixedCost'),
-	startDate: integer('startDate', { mode: 'timestamp' }) //TODO: validate it's a date
-		.notNull(),
+	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
 	buildingId: text('buildingId')
 		.notNull()

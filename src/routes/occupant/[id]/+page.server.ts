@@ -6,16 +6,21 @@ import { eq } from 'drizzle-orm';
 export const load: Load = async ({ params }) => {
 	if (!params.id) return;
 
-	const safeId = selectOccupantSchema.shape.id.safeParse(params.id);
+	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
 
-	if (!safeId.success) {
+	if (!parsed.success) {
 		return {
 			status: 400,
-			error: safeId.error
+			error: parsed.error
 		};
 	}
 
 	return {
-		occupant: await db.query.occupants.findFirst({ where: eq(occupants.id, safeId.data) })
+		occupant: await db.query.occupants.findFirst({
+			where: eq(occupants.id, parsed.data),
+			with: {
+				measuringDevices: true
+			}
+		})
 	};
 };
