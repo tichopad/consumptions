@@ -26,18 +26,7 @@ export const actions = {
 			};
 		}
 
-		const [occupant] = await db
-			.insert(occupants)
-			.values({
-				buildingId: parsed.data.buildingId,
-				name: parsed.data.name,
-				squareMeters: parsed.data.squareMeters,
-				chargedUnmeasuredElectricity: parsed.data.chargedUnmeasuredElectricity,
-				chargedUnmeasuredHeating: parsed.data.chargedUnmeasuredHeating,
-				chargedUnmeasuredWater: parsed.data.chargedUnmeasuredWater,
-				heatingFixedCostShare: parsed.data.heatingFixedCostShare
-			})
-			.returning();
+		const [occupant] = await db.insert(occupants).values(parsed.data).returning();
 
 		console.log('Created occupant', occupant);
 

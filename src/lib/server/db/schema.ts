@@ -7,7 +7,7 @@ import { z } from 'zod';
 // -- ID --
 
 export type ID = string & z.BRAND<'ID'>;
-const createId = hyperid({ urlSafe: true });
+const createId = hyperid({ urlSafe: true, fixedLength: true });
 export const id = () => createId() as ID;
 const primaryIdColumn = text('id').primaryKey().notNull().$defaultFn(id).$type<ID>();
 
@@ -25,7 +25,7 @@ export type EnergyType = (typeof energyTypes)[number];
 export const buildings = sqliteTable('buildings', {
 	id: primaryIdColumn,
 	name: text('name').notNull(),
-	squareMeters: text('squareMeters').notNull()
+	squareMeters: integer('squareMeters')
 });
 
 export const buildingsRelations = relations(buildings, ({ many }) => ({
@@ -37,7 +37,8 @@ export const selectBuildingSchema = createSelectSchema(buildings, {
 	id: (schema) => schema.id.brand<'ID'>()
 });
 export const insertBuildingSchema = createInsertSchema(buildings, {
-	id: (schema) => schema.id.brand<'ID'>()
+	id: (schema) => schema.id.brand<'ID'>(),
+	squareMeters: z.coerce.number().optional()
 });
 
 export type Building = typeof buildings.$inferSelect;
@@ -48,7 +49,7 @@ export type BuildingInsert = typeof buildings.$inferInsert;
 export const occupants = sqliteTable('occupants', {
 	id: primaryIdColumn,
 	name: text('name').notNull(),
-	squareMeters: text('squareMeters').notNull(),
+	squareMeters: integer('squareMeters').notNull(),
 	chargedUnmeasuredElectricity: booleanColumn('chargedUnmeasuredElectricity')
 		.notNull()
 		.default(false),
@@ -75,7 +76,12 @@ export const selectOccupantSchema = createSelectSchema(occupants, {
 });
 export const insertOccupantSchema = createInsertSchema(occupants, {
 	id: (schema) => schema.id.brand<'ID'>(),
-	buildingId: (schema) => schema.buildingId.brand<'ID'>()
+	buildingId: (schema) => schema.buildingId.brand<'ID'>(),
+	chargedUnmeasuredElectricity: z.coerce.boolean().optional().default(false),
+	chargedUnmeasuredHeating: z.coerce.boolean().optional().default(false),
+	chargedUnmeasuredWater: z.coerce.boolean().optional().default(false),
+	heatingFixedCostShare: z.coerce.number().optional(),
+	squareMeters: z.coerce.number()
 });
 
 export type Occupant = typeof occupants.$inferSelect;
@@ -139,7 +145,9 @@ export const selectConsumptionRecordSchema = createSelectSchema(consumptionRecor
 });
 export const insertConsumptionRecordSchema = createInsertSchema(consumptionRecords, {
 	id: (schema) => schema.id.brand<'ID'>(),
-	measuringDeviceId: (schema) => schema.measuringDeviceId.brand<'ID'>()
+	measuringDeviceId: (schema) => schema.measuringDeviceId.brand<'ID'>(),
+	unmeasured: z.coerce.boolean().optional().default(false),
+	consumption: z.coerce.number().optional()
 });
 
 export type ConsumptionRecord = typeof consumptionRecords.$inferSelect;
@@ -174,7 +182,9 @@ export const selectEnergyBillSchema = createSelectSchema(energyBills, {
 });
 export const insertEnergyBillSchema = createInsertSchema(energyBills, {
 	id: (schema) => schema.id.brand<'ID'>(),
-	buildingId: (schema) => schema.buildingId.brand<'ID'>()
+	buildingId: (schema) => schema.buildingId.brand<'ID'>(),
+	totalCost: z.coerce.number(),
+	fixedCost: z.coerce.number().optional()
 });
 
 export type EnergyBill = typeof energyBills.$inferSelect;
