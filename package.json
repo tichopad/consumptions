@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
+		"start": "turbo run db:start & sleep 1 && turbo run dev",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
@@ -13,12 +14,14 @@
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"db:start": "turso dev --db-file local.db & sleep 1 && bun run db:studio",
+		"db:start": "turso dev & sleep 1 && bun run db:studio",
 		"db:migrate": "drizzle-kit generate:sqlite && bun run drizzle/migrate.ts",
 		"db:push": "drizzle-kit push:sqlite",
+		"db:seed": "bun run drizzle/seed.ts",
 		"db:studio": "drizzle-kit studio --port 3333"
 	},
 	"devDependencies": {
+		"@faker-js/faker": "^8.4.1",
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
@@ -48,7 +51,7 @@
 		"@libsql/client": "^0.4.3",
 		"drizzle-orm": "^0.29.3",
 		"drizzle-zod": "^0.5.1",
-		"hyperid": "^3.2.0",
+		"nanoid": "^5.0.5",
 		"zod": "^3.22.4"
 	}
 }

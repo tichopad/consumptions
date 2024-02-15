@@ -1,13 +1,16 @@
 import { relations } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import hyperid from 'hyperid';
+import { customAlphabet } from 'nanoid';
 import { z } from 'zod';
 
 // -- ID --
 
 export type ID = string & z.BRAND<'ID'>;
-const createId = hyperid({ urlSafe: true, fixedLength: true });
+const createId = customAlphabet(
+	'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+	11
+);
 export const id = () => createId() as ID;
 const primaryIdColumn = text('id').primaryKey().notNull().$defaultFn(id).$type<ID>();
 
@@ -55,7 +58,7 @@ export const occupants = sqliteTable('occupants', {
 		.default(false),
 	chargedUnmeasuredHeating: booleanColumn('chargedUnmeasuredHeating').notNull().default(false),
 	chargedUnmeasuredWater: booleanColumn('chargedUnmeasuredWater').notNull().default(false),
-	heatingFixedCostShare: integer('heatingFixedCostShare'),
+	heatingFixedCostShare: real('heatingFixedCostShare'),
 	buildingId: text('buildingId')
 		.notNull()
 		.references(() => buildings.id)
