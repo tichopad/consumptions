@@ -1,4 +1,4 @@
-import { energyTypes, id, type ID } from '$lib/helpers';
+import { energyTypes, id, type ID } from '../../helpers';
 import { relations } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
