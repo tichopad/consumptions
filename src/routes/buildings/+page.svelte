@@ -7,7 +7,7 @@
 		<a href="/" class="hover:underline">Home</a>
 		<h1 class="text-2xl">Building List</h1>
 		<div>
-			<a href="/building/create" class="hover:underline">New Building</a>
+			<a href="/buildings/create" class="hover:underline">New Building</a>
 		</div>
 
 		{#if data.buildings.length === 0}
@@ -15,7 +15,7 @@
 		{:else}
 			<ul>
 				{#each data.buildings as building}
-					<li><a href={`/building/${building.id}`}>{building.name}</a></li>
+					<li><a href={`/buildings/${building.id}`}>{building.name}</a></li>
 				{/each}
 			</ul>
 		{/if}

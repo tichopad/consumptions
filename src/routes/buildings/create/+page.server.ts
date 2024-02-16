@@ -20,6 +20,6 @@ export const actions = {
 
 		console.log('Created building', building);
 
-		return redirect(302, `/building/${building.id}`);
+		return redirect(302, `/buildings/${building.id}`);
 	}
 } satisfies Actions;

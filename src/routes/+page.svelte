@@ -1,6 +1,1 @@
-<main class="flex items-center justify-center">
-  <ul>
-    <li><a href="/building" class="hover:underline">Buildings</a></li>
-    <li><a href="/occupant" class="hover:underline">Occupants</a></li>
-  </ul>
-</main>
+<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">kewkew</div>
