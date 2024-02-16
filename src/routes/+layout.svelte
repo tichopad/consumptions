@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+	export let data;
+
 	import '../app.css';
 	import Package from '$lib/components/icons/package.svelte';
 	import SearchIcon from '$lib/components/icons/search.svelte';
@@ -14,10 +16,16 @@
 				<Package class="w-6 h-6" />
 				<span class="sr-only">Oliera Consumptions Logo</span>
 			</a>
-			<a class="font-bold" href="/">Dashboard</a>
-			<a class="text-gray-500 dark:text-gray-400" href="/buildings">Buildings</a>
-			<a class="text-gray-500 dark:text-gray-400" href="/occupants">Occupants</a>
-			<a class="text-gray-500 dark:text-gray-400" href="/bills">Bills</a>
+			{#each data.navLinks as navLink (navLink.name)}
+				{@const active = navLink.href === data.activeHref}
+				<a
+					class="text-gray-500 dark:text-gray-400 hover:text-current font-bold"
+					class:text-current={active}
+					class:text-gray-500={!active}
+					class:dark:text-gray-400={!active}
+					href={navLink.href}>{navLink.name}</a
+				>
+			{/each}
 		</nav>
 		<div class="flex items-center w-full gap-4 md:ml-auto md:gap-2 lg:gap-4">
 			<form class="flex-1 ml-auto sm:flex-initial">
@@ -32,9 +40,5 @@
 			</form>
 		</div>
 	</header>
-</div>
-<main
-	class="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
->
 	<slot />
-</main>
+</div>
