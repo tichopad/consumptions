@@ -2,6 +2,9 @@
 	export let data;
 
 	import * as Table from '$lib/components/ui/table';
+	import LightbulbIcon from '$lib/components/icons/lightbulb.svelte';
+	import DropletsIcon from '$lib/components/icons/droplets.svelte';
+	import FlameIcon from '$lib/components/icons/flame.svelte';
 </script>
 
 <main
@@ -15,7 +18,7 @@
 	</div>
 
 	<div>
-		<h2 class="text-xl font-bold mt-4 mb-2">Occupants</h2>
+		<h2 class="text-xl font-bold py-2">Occupants</h2>
 		<Table.Root>
 			<Table.Header>
 				<Table.Row>
@@ -36,7 +39,22 @@
 						>
 							{occupant.heatingFixedCostShare?.toFixed(2) ?? 'None'}</Table.Cell
 						>
-						<Table.Cell></Table.Cell>
+						<Table.Cell>
+							<div class="flex justify-end">
+								{#if occupant.chargedUnmeasuredElectricity}
+									<LightbulbIcon class="w-4 h-4 text-yellow-600" />
+								{/if}
+								{#if occupant.chargedUnmeasuredWater}
+									<DropletsIcon class="w-4 h-4 text-blue-600" />
+								{/if}
+								{#if occupant.chargedUnmeasuredHeating}
+									<FlameIcon class="w-4 h-4 text-red-600" />
+								{/if}
+								{#if !occupant.chargedUnmeasuredElectricity && !occupant.chargedUnmeasuredWater && !occupant.chargedUnmeasuredHeating}
+									<span class="text-gray-400">No</span>
+								{/if}
+							</div>
+						</Table.Cell>
 						<Table.Cell class="text-right pl-0">
 							<a href={`/occupants/${occupant.id}`} class="block">{occupant.squareMeters}</a>
 						</Table.Cell>
@@ -46,12 +64,42 @@
 		</Table.Root>
 	</div>
 
-	<h2 class="text-lg font-bold mt-4 mb-2">Energy Bills:</h2>
-	<ul>
-		{#each data.building.energyBills as bill}
-			<li class="mb-2">
-				<span class="font-bold">{bill.energyType}, {bill.startDate.toISOString()}</span>
-			</li>
-		{/each}
-	</ul>
+	<div>
+		<h2 class="text-xl font-bold py-2">Energy Bills</h2>
+		<Table.Root>
+			<Table.Header>
+				<Table.Row>
+					<Table.Head>Type</Table.Head>
+					<Table.Head>From</Table.Head>
+					<Table.Head>To</Table.Head>
+					<Table.Head class="text-right">Fixed cost</Table.Head>
+					<Table.Head class="text-right">Total cost</Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
+				{#each data.building.energyBills as bill (bill.id)}
+					<Table.Row class="hover:bg-slate-100">
+						<Table.Cell class="font-medium">
+							<a href={`/energy-bills/${bill.id}`}>
+								{bill.energyType.charAt(0).toUpperCase() + bill.energyType.slice(1)}
+							</a>
+						</Table.Cell>
+						<Table.Cell>{bill.startDate.toLocaleDateString()}</Table.Cell>
+						<Table.Cell>{bill.endDate.toLocaleDateString()}</Table.Cell>
+						<Table.Cell class="text-right">
+							{#if bill.fixedCost === null}
+								<span class="text-gray-400">None</span>
+							{:else}
+								{bill.fixedCost.toLocaleString()}&nbsp;CZK
+							{/if}
+						</Table.Cell>
+						<Table.Cell class="font-medium text-right"
+							>{bill.totalCost.toLocaleString()}&nbsp;<span class="font-normal">CZK</span
+							></Table.Cell
+						>
+					</Table.Row>
+				{/each}
+			</Table.Body>
+		</Table.Root>
+	</div>
 </main>

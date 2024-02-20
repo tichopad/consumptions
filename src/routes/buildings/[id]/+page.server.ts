@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db/client';
-import { buildings, selectBuildingSchema } from '$lib/server/db/schema';
+import { buildings, energyBills, occupants, selectBuildingSchema } from '$lib/server/db/schema';
 import { error, type Load } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 
 export const load: Load = async ({ params }) => {
 	const parsed = selectBuildingSchema.shape.id.safeParse(params.id);
@@ -13,8 +13,12 @@ export const load: Load = async ({ params }) => {
 	const building = await db.query.buildings.findFirst({
 		where: eq(buildings.id, parsed.data),
 		with: {
-			energyBills: true,
-			occupants: true
+			energyBills: {
+				orderBy: desc(energyBills.endDate)
+			},
+			occupants: {
+				orderBy: asc(occupants.name)
+			}
 		}
 	});
 
