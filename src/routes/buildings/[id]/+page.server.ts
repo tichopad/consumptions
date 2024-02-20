@@ -22,7 +22,7 @@ export const load: Load = async ({ params }) => {
 		}
 	});
 
-	if (!building) {
+	if (building === undefined) {
 		return error(404, 'Building not found.');
 	}
 
