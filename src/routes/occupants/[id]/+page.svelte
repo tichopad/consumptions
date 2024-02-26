@@ -1,7 +1,19 @@
 <script lang="ts">
 	export let data;
 
-	import { energyTypes } from '$lib/helpers';
+	import * as Table from '$lib/components/ui/table';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import * as Select from '$lib/components/ui/select';
+	import { type EnergyType } from '$lib/helpers.js';
+
+	const energies: { value: EnergyType; label: string }[] = [
+		{ value: 'electricity', label: 'Electricity' },
+		{ value: 'heating', label: 'Heating' },
+		{ value: 'water', label: 'Water' }
+	];
 </script>
 
 <main
@@ -10,62 +22,71 @@
 	<div>
 		<p class="text-sm text-gray-500 dark:text-gray-400">Occupant</p>
 		<h1 class="text-2xl font-bold py-2">{data.occupant.name}</h1>
-		<p class="text-gray-500 dark:text-gray-400">69 m²</p>
+		<p class="text-gray-500 dark:text-gray-400">{data.occupant.squareMeters} m²</p>
+	</div>
+
+	<div>
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-bold py-2">Measuring devices</h2>
+			<Dialog.Root>
+				<Dialog.Trigger class={buttonVariants({ variant: 'outline' })}>Add</Dialog.Trigger>
+				<Dialog.Content class="sm:max-w-[425px]">
+					<form method="post">
+						<Dialog.Header>
+							<Dialog.Title>Add measuring device</Dialog.Title>
+							<Dialog.Description>
+								Create and add new measuring device. Click save when you're done.
+							</Dialog.Description>
+						</Dialog.Header>
+						<div class="grid gap-4 py-4">
+							<div class="grid grid-cols-4 items-center gap-4">
+								<Label for="name" class="text-right">Name</Label>
+								<Input id="name" class="col-span-3" />
+							</div>
+							<div class="grid grid-cols-4 items-center gap-4">
+								<Label for="energyType" class="text-right">Energy type</Label>
+								<Select.Root>
+									<Select.Trigger class="w-[275px]">
+										<Select.Value placeholder="Select ..." />
+									</Select.Trigger>
+									<Select.Content>
+										<Select.Group>
+											<Select.Label>Energy type</Select.Label>
+											{#each energies as energy}
+												<Select.Item value={energy.value} label={energy.label}
+													>{energy.label}</Select.Item
+												>
+											{/each}
+										</Select.Group>
+									</Select.Content>
+									<Select.Input name="energyType" />
+								</Select.Root>
+							</div>
+						</div>
+						<Dialog.Footer>
+							<Button type="submit">Save changes</Button>
+						</Dialog.Footer>
+					</form>
+				</Dialog.Content>
+			</Dialog.Root>
+		</div>
+		<Table.Root>
+			<Table.Header>
+				<Table.Row>
+					<Table.Head>Name</Table.Head>
+					<Table.Head class="text-right">Type</Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
+				{#each data.occupant.measuringDevices as device (device.id)}
+					<Table.Row class="hover:bg-slate-100">
+						<Table.Cell class="font-medium whitespace-nowrap pr-0">
+							{device.name}
+						</Table.Cell>
+						<Table.Cell class="text-right">{device.energyType}</Table.Cell>
+					</Table.Row>
+				{/each}
+			</Table.Body>
+		</Table.Root>
 	</div>
 </main>
-
-<h1 class="text-2xl font-bold mb-4">{data.occupant.name}</h1>
-<p class="mb-2">Area: {data.occupant.squareMeters}</p>
-<p class="mb-2">
-	Fixed cost share for heating: {data.occupant.heatingFixedCostShare ?? 'None'}
-</p>
-<p class="mb-2">Charged unmeasured share:</p>
-<ul>
-	<li>Electricity: {data.occupant.chargedUnmeasuredElectricity ? 'Yes' : 'No'}</li>
-	<li>Water: {data.occupant.chargedUnmeasuredWater ? 'Yes' : 'No'}</li>
-	<li>Heating: {data.occupant.chargedUnmeasuredHeating ? 'Yes' : 'No'}</li>
-</ul>
-
-<section class="mt-8">
-	<h2 class="text-xl font-bold mb-4">Measuring Devices</h2>
-	{#each data.occupant.measuringDevices as device (device.id)}
-		<div class="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
-			<p class="text-lg font-semibold">Name: {device.name}</p>
-			<p class="text-gray-500">Type: {device.energyType}</p>
-			<div class="flex justify-end mt-2">
-				<button
-					class="px-4 py-2 bg-blue-500 text-white rounded-md mr-2"
-					on:click={() => console.log('Edit ' + device.id)}>Edit</button
-				>
-				<button
-					class="px-4 py-2 bg-red-500 text-white rounded-md"
-					on:click={() => console.log('Delete' + device.id)}>Delete</button
-				>
-			</div>
-		</div>
-	{/each}
-</section>
-
-<section class="mt-8">
-	<h2 class="text-xl font-bold mb-4">Add New Measuring Device</h2>
-	<form class="flex flex-col items-start">
-		<label for="name" class="text-lg font-semibold">Name:</label>
-		<input
-			type="text"
-			id="name"
-			name="name"
-			class="border border-gray-300 rounded-md px-2 py-1 w-64"
-		/>
-
-		<label for="type" class="text-lg font-semibold mt-4">Type:</label>
-		<select id="type" name="type" class="border border-gray-300 rounded-md px-2 py-1 w-64">
-			{#each energyTypes as type}
-				<option value={type}>{type}</option>
-			{/each}
-		</select>
-
-		<button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-md mt-4"
-			>Add Device</button
-		>
-	</form>
-</section>

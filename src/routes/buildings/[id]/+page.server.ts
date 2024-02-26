@@ -7,7 +7,7 @@ export const load: Load = async ({ params }) => {
 	const parsed = selectBuildingSchema.shape.id.safeParse(params.id);
 
 	if (!parsed.success) {
-		return error(400, 'Missing or invalid building ID.');
+		error(400, 'Missing or invalid building ID.');
 	}
 
 	const building = await db.query.buildings.findFirst({
@@ -23,7 +23,7 @@ export const load: Load = async ({ params }) => {
 	});
 
 	if (building === undefined) {
-		return error(404, 'Building not found.');
+		error(404, 'Building not found.');
 	}
 
 	return { building };
