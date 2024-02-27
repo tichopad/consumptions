@@ -5,6 +5,7 @@
 	import Package from '$lib/components/icons/package.svelte';
 	import SearchIcon from '$lib/components/icons/search.svelte';
 	import { Input } from '$lib/components/ui/input';
+	import { Toaster } from '$lib/components/ui/sonner';
 </script>
 
 <div class="flex flex-col w-full min-h-screen">
@@ -41,4 +42,5 @@
 		</div>
 	</header>
 	<slot />
+	<Toaster />
 </div>
