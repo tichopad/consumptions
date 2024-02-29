@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db/client';
-import { buildings, insertBuildingSchema } from '$lib/server/db/schema';
+import { buildings, insertBuildingSchema } from '$lib/models/schema';
 import { redirect, type Actions } from '@sveltejs/kit';
 
 export const actions = {

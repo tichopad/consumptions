@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db/client';
-import { insertOccupantSchema, occupants } from '$lib/server/db/schema';
+import { insertOccupantSchema, occupants } from '$lib/models/schema';
 import { redirect, type Load } from '@sveltejs/kit';
 import type { Actions } from './$types';
 

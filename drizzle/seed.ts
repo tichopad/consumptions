@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/cs_CZ';
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import { z } from 'zod';
-import { energyTypes, type ID } from '../src/lib/helpers';
+import { energyTypes, type ID } from '../src/lib/models/schema';
 import {
 	buildings,
 	consumptionRecords,
@@ -14,7 +14,7 @@ import {
 	type EnergyBillInsert,
 	type MeasuringDeviceInsert,
 	type OccupantInsert
-} from '../src/lib/server/db/schema';
+} from '../src/lib/models/schema';
 
 // Get environment variables
 const env = z.object({ DATABASE_URL: z.string() }).parse(process.env);

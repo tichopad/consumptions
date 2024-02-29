@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db/client';
-import { buildings, energyBills, occupants, selectBuildingSchema } from '$lib/server/db/schema';
+import { buildings, energyBills, occupants, selectBuildingSchema } from '$lib/models/schema';
 import { error, type Load } from '@sveltejs/kit';
 import { asc, desc, eq } from 'drizzle-orm';
 

@@ -10,7 +10,7 @@ const env = z
 	.parse(process.env);
 
 export default {
-	schema: './src/lib/server/db/schema.ts',
+	schema: './src/lib/models/schema.ts',
 	out: './drizzle/migrations',
 	driver: 'turso',
 	dbCredentials: {

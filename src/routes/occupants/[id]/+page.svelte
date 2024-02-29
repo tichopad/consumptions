@@ -4,35 +4,18 @@
 
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import * as Select from '$lib/components/ui/select';
-	import { type EnergyType } from '$lib/helpers.js';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
-	import { toast } from 'svelte-sonner';
-
-	const energies: { value: EnergyType; label: string }[] = [
-		{ value: 'electricity', label: 'Electricity' },
-		{ value: 'heating', label: 'Heating' },
-		{ value: 'water', label: 'Water' }
-	];
+	import AddMeasuringDeviceFormDialog from './add-device-dialog.svelte';
 
 	let isDialogOpen = false;
-	let isAddingMeasuringDevice = false;
-
-	const addMeasuringDeviceSubmit: SubmitFunction = () => {
-		isAddingMeasuringDevice = true;
-		return async ({ update }) => {
-			await update();
-			isAddingMeasuringDevice = false;
-			isDialogOpen = false;
-			toast.success('Measuring device added successfully');
-		};
+	const openDialog = () => {
+		isDialogOpen = true;
+	};
+	const closeDialog = () => {
+		isDialogOpen = false;
 	};
 
-	$: console.log(form);
+	$: console.log('form', form);
+	$: console.log('data', data);
 </script>
 
 <main
@@ -47,7 +30,7 @@
 	<div>
 		<div class="flex items-center justify-between">
 			<h2 class="text-xl font-bold py-2">Measuring devices</h2>
-			<Button variant="outline" on:click={() => (isDialogOpen = true)}>Add</Button>
+			<Button variant="outline" on:click={openDialog}>Add</Button>
 		</div>
 		<Table.Root>
 			<Table.Header>
@@ -70,46 +53,4 @@
 	</div>
 </main>
 
-<Dialog.Root bind:open={isDialogOpen}>
-	<Dialog.Trigger />
-	<Dialog.Content class="sm:max-w-[425px]">
-		<form method="post" action="?/createMeasuringDevice" use:enhance={addMeasuringDeviceSubmit}>
-			<input type="hidden" name="occupantId" value={data.occupant.id} />
-			<Dialog.Header>
-				<Dialog.Title>Add measuring device</Dialog.Title>
-				<Dialog.Description>
-					Create and add new measuring device. Click save when you're done.
-				</Dialog.Description>
-			</Dialog.Header>
-			<div class="grid gap-4 py-4">
-				<div class="grid grid-cols-4 items-center gap-4">
-					<Label for="name" class="text-right">Name</Label>
-					<Input id="name" name="name" class="col-span-3" />
-				</div>
-				<div class="grid grid-cols-4 items-center gap-4">
-					<Label for="energyType" class="text-right">Energy type</Label>
-					<Select.Root>
-						<Select.Trigger class="w-[275px]">
-							<Select.Value placeholder="Select ..." />
-						</Select.Trigger>
-						<Select.Content>
-							<Select.Group>
-								<Select.Label>Energy type</Select.Label>
-								{#each energies as energy}
-									<Select.Item value={energy.value} label={energy.label}>{energy.label}</Select.Item
-									>
-								{/each}
-							</Select.Group>
-						</Select.Content>
-						<Select.Input name="energyType" />
-					</Select.Root>
-				</div>
-			</div>
-			<Dialog.Footer>
-				<Button type="submit" disabled={isAddingMeasuringDevice}
-					>{isAddingMeasuringDevice ? 'Saving ...' : 'Save'}</Button
-				>
-			</Dialog.Footer>
-		</form>
-	</Dialog.Content>
-</Dialog.Root>
+<AddMeasuringDeviceFormDialog occupantId={data.occupant.id} open={isDialogOpen} data={data.form} />

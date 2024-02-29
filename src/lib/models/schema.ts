@@ -1,8 +1,22 @@
-import { energyTypes, id, type ID } from '../../helpers';
 import { relations } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+import { customAlphabet } from 'nanoid';
+
+// -- ID --
+
+export type ID = string & z.BRAND<'ID'>;
+const createId = customAlphabet(
+	'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+	11
+);
+export const id = () => createId() as ID;
+
+// -- Energy Types --
+
+export const energyTypes = ['electricity', 'heating', 'water'] as const;
+export type EnergyType = (typeof energyTypes)[number];
 
 // -- Column types --
 
