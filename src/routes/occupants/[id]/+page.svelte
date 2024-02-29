@@ -1,23 +1,21 @@
 <script lang="ts">
-	export let data;
-	export let form;
-
-	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
+	import * as Table from '$lib/components/ui/table';
 	import AddMeasuringDeviceFormDialog from './add-device-dialog.svelte';
 
-	let isDialogOpen = false;
-	const openDialog = () => {
-		isDialogOpen = true;
-	};
-	const closeDialog = () => {
-		isDialogOpen = false;
-	};
+	export let data;
 
-	$: console.log('form', form);
+	let isDialogOpen = false;
+
 	$: console.log('data', data);
+	$: console.log('isDialogOpen', isDialogOpen);
 </script>
 
+<AddMeasuringDeviceFormDialog
+	bind:open={isDialogOpen}
+	data={data.form}
+	occupantId={data.occupant.id}
+/>
 <main
 	class="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
 >
@@ -30,7 +28,7 @@
 	<div>
 		<div class="flex items-center justify-between">
 			<h2 class="text-xl font-bold py-2">Measuring devices</h2>
-			<Button variant="outline" on:click={openDialog}>Add</Button>
+			<Button variant="outline" on:click={() => (isDialogOpen = true)}>Add</Button>
 		</div>
 		<Table.Root>
 			<Table.Header>
@@ -52,5 +50,3 @@
 		</Table.Root>
 	</div>
 </main>
-
-<AddMeasuringDeviceFormDialog occupantId={data.occupant.id} open={isDialogOpen} data={data.form} />

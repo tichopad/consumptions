@@ -5,6 +5,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import type { EnergyType, ID } from '$lib/helpers';
 	import { insertMeasuringDeviceSchema } from '$lib/models/schema';
+	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
@@ -13,10 +14,14 @@
 	export let open = false;
 
 	const form = superForm(data, {
-		validators: zodClient(insertMeasuringDeviceSchema)
+		validators: zodClient(insertMeasuringDeviceSchema),
+		onUpdated({ form }) {
+			open = false;
+			toast.success(form.message);
+		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, delayed } = form;
 
 	const energies: { value: EnergyType; label: string }[] = [
 		{ value: 'electricity', label: 'Electricity' },
@@ -72,7 +77,7 @@
 				</div>
 			</div>
 			<Dialog.Footer>
-				<Form.Button>Save</Form.Button>
+				<Form.Button disabled={$delayed}>{$delayed ? 'Saving ...' : 'Save'}</Form.Button>
 			</Dialog.Footer>
 		</form>
 	</Dialog.Content>

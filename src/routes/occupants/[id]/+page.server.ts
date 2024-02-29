@@ -40,9 +40,9 @@ export const actions: Actions = {
 
 		if (!form.valid) return fail(400, { form });
 
-		const [newMeasuringDevice] = await db.insert(measuringDevices).values(form.data).returning();
+		await db.insert(measuringDevices).values(form.data).returning();
 
-		console.log(newMeasuringDevice);
+		form.message = 'Measuring device created';
 
 		return { form };
 	}
