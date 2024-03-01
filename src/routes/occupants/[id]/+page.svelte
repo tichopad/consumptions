@@ -1,21 +1,17 @@
 <script lang="ts">
+	import { pushState } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
 	import * as Table from '$lib/components/ui/table';
 	import AddMeasuringDeviceFormDialog from './add-device-dialog.svelte';
 
 	export let data;
-
-	let isDialogOpen = false;
-
-	$: console.log('data', data);
-	$: console.log('isDialogOpen', isDialogOpen);
 </script>
 
-<AddMeasuringDeviceFormDialog
-	bind:open={isDialogOpen}
-	data={data.form}
-	occupantId={data.occupant.id}
-/>
+{#if $page.state.showModal}
+	<AddMeasuringDeviceFormDialog data={data.form} occupantId={data.occupant.id} />
+{/if}
+
 <main
 	class="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
 >
@@ -28,7 +24,7 @@
 	<div>
 		<div class="flex items-center justify-between">
 			<h2 class="text-xl font-bold py-2">Measuring devices</h2>
-			<Button variant="outline" on:click={() => (isDialogOpen = true)}>Add</Button>
+			<Button variant="outline" on:click={() => pushState('', { showModal: true })}>Add</Button>
 		</div>
 		<Table.Root>
 			<Table.Header>

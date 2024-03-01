@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { pushState } from '$app/navigation';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
@@ -11,13 +12,17 @@
 
 	export let data: SuperValidated<Infer<typeof insertMeasuringDeviceSchema>>;
 	export let occupantId: ID;
-	export let open = false;
 
 	const form = superForm(data, {
 		validators: zodClient(insertMeasuringDeviceSchema),
+		onError({ result }) {
+			// TODO: better error messages
+			toast.error(result.error.message);
+		},
 		onUpdated({ form }) {
-			open = false;
-			toast.success(form.message);
+			if (form.valid && form.message) {
+				toast.success(form.message);
+			}
 		}
 	});
 
@@ -30,7 +35,13 @@
 	];
 </script>
 
-<Dialog.Root bind:open>
+<Dialog.Root
+	open
+	onOpenChange={(isOpen) => {
+		// The dialog uses shallow routing, so it can be closed by navigating back
+		if (!isOpen) pushState('..', { showModal: false });
+	}}
+>
 	<Dialog.Trigger />
 	<Dialog.Content class="sm:max-w-[425px]">
 		<form method="post" action="?/createMeasuringDevice" use:enhance>
@@ -41,40 +52,33 @@
 					Create and add new measuring device. Click save when you're done.
 				</Dialog.Description>
 			</Dialog.Header>
-			<div class="grid gap-4 py-4">
-				<div class="grid grid-cols-4 items-center gap-4">
-					<Form.Field {form} name="name">
-						<Form.Control let:attrs>
-							<Form.Label>Name</Form.Label>
-							<Input {...attrs} class="col-span-3" bind:value={$formData.name} />
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-				</div>
-				<div class="grid grid-cols-4 items-center gap-4">
-					<Form.Field {form} name="energyType">
-						<Form.Control let:attrs>
-							<Form.Label>Energy type</Form.Label>
-							<Select.Root>
-								<Select.Trigger class="w-[275px]" {...attrs}>
-									<Select.Value placeholder="Select ..." />
-								</Select.Trigger>
-								<Select.Content>
-									<Select.Group>
-										<Select.Label>Energy type</Select.Label>
-										{#each energies as energy}
-											<Select.Item value={energy.value} label={energy.label}
-												>{energy.label}</Select.Item
-											>
-										{/each}
-									</Select.Group>
-								</Select.Content>
-								<Select.Input {...attrs} />
-							</Select.Root>
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-				</div>
+			<div class="py-4">
+				<Form.Field {form} name="name">
+					<Form.Control let:attrs>
+						<Form.Label>Name</Form.Label>
+						<Input {...attrs} class="col-span-3" bind:value={$formData.name} />
+					</Form.Control>
+					<Form.FieldErrors />
+				</Form.Field>
+				<Form.Field {form} name="energyType">
+					<Form.Control let:attrs>
+						<Form.Label>Energy type</Form.Label>
+						<Select.Root>
+							<Select.Trigger {...attrs}>
+								<Select.Value placeholder="Select ..." />
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Group>
+									{#each energies as energy}
+										<Select.Item {...energy}>{energy.label}</Select.Item>
+									{/each}
+								</Select.Group>
+							</Select.Content>
+							<Select.Input {...attrs} />
+						</Select.Root>
+					</Form.Control>
+					<Form.FieldErrors />
+				</Form.Field>
 			</div>
 			<Dialog.Footer>
 				<Form.Button disabled={$delayed}>{$delayed ? 'Saving ...' : 'Save'}</Form.Button>

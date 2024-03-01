@@ -41,6 +41,7 @@ export const selectBuildingSchema = createSelectSchema(buildings, {
 });
 export const insertBuildingSchema = createInsertSchema(buildings, {
 	id: (schema) => schema.id.brand<'ID'>(),
+	name: (schema) => schema.name.trim().min(1),
 	squareMeters: z.coerce.number().optional()
 });
 
@@ -84,6 +85,7 @@ export const insertOccupantSchema = createInsertSchema(occupants, {
 	chargedUnmeasuredHeating: z.coerce.boolean().optional().default(false),
 	chargedUnmeasuredWater: z.coerce.boolean().optional().default(false),
 	heatingFixedCostShare: z.coerce.number().optional(),
+	name: (schema) => schema.name.trim().min(1),
 	squareMeters: z.coerce.number()
 });
 
@@ -116,7 +118,8 @@ export const selectMeasuringDeviceSchema = createSelectSchema(measuringDevices, 
 });
 export const insertMeasuringDeviceSchema = createInsertSchema(measuringDevices, {
 	id: (schema) => schema.id.brand<'ID'>(),
-	occupantId: (schema) => schema.occupantId.brand<'ID'>()
+	occupantId: (schema) => schema.occupantId.brand<'ID'>(),
+	name: (schema) => schema.name.trim().min(1)
 });
 
 export type MeasuringDevice = typeof measuringDevices.$inferSelect;
