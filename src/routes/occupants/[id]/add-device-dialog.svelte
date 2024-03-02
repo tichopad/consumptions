@@ -39,7 +39,7 @@
 	open
 	onOpenChange={(isOpen) => {
 		// The dialog uses shallow routing, so it can be closed by navigating back
-		if (!isOpen) pushState('..', { showModal: false });
+		if (!isOpen) pushState('', { showModal: false });
 	}}
 >
 	<Dialog.Trigger />

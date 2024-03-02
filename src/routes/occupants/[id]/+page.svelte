@@ -6,6 +6,8 @@
 	import AddMeasuringDeviceFormDialog from './add-device-dialog.svelte';
 
 	export let data;
+
+	$: console.log($page.state);
 </script>
 
 {#if $page.state.showModal}
