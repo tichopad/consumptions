@@ -49,6 +49,7 @@
   "type": "module",
   "dependencies": {
     "@libsql/client": "^0.4.3",
+    "bignumber.js": "^9.1.2",
     "bits-ui": "^0.18.2",
     "clsx": "^2.1.0",
     "drizzle-orm": "^0.29.3",

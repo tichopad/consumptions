@@ -71,7 +71,8 @@ export const occupantsRelations = relations(occupants, ({ one, many }) => ({
 		fields: [occupants.buildingId],
 		references: [buildings.id]
 	}),
-	measuringDevices: many(measuringDevices)
+	measuringDevices: many(measuringDevices),
+	energyBills: many(energyBills)
 }));
 
 export const selectOccupantSchema = createSelectSchema(occupants, {
@@ -131,8 +132,7 @@ export const consumptionRecords = sqliteTable('consumptionRecords', {
 	id: primaryIdColumn,
 	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
-	unmeasured: booleanColumn('unmeasured').notNull().default(false),
-	consumption: real('consumption'),
+	consumption: real('consumption').notNull(),
 	measuringDeviceId: text('measuringDeviceId')
 		.references(() => measuringDevices.id)
 		.$type<ID>()
@@ -152,7 +152,6 @@ export const selectConsumptionRecordSchema = createSelectSchema(consumptionRecor
 export const insertConsumptionRecordSchema = createInsertSchema(consumptionRecords, {
 	id: (schema) => schema.id.brand<'ID'>(),
 	measuringDeviceId: (schema) => schema.measuringDeviceId.brand<'ID'>(),
-	unmeasured: z.coerce.boolean().optional().default(false),
 	consumption: z.coerce.number().optional()
 });
 
@@ -169,8 +168,10 @@ export const energyBills = sqliteTable('energyBills', {
 	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
 	buildingId: text('buildingId')
-		.notNull()
 		.references(() => buildings.id)
+		.$type<ID>(),
+	occupantId: text('occupantId')
+		.references(() => occupants.id)
 		.$type<ID>()
 });
 
@@ -178,6 +179,10 @@ export const energyBillsRelations = relations(energyBills, ({ one }) => ({
 	buildings: one(buildings, {
 		fields: [energyBills.buildingId],
 		references: [buildings.id]
+	}),
+	occupants: one(occupants, {
+		fields: [energyBills.occupantId],
+		references: [occupants.id]
 	})
 }));
 
