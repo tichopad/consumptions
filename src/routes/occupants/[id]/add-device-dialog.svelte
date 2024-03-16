@@ -4,8 +4,7 @@
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import type { EnergyType, ID } from '$lib/helpers';
-	import { insertMeasuringDeviceSchema } from '$lib/models/schema';
+	import { insertMeasuringDeviceSchema, type EnergyType, type ID } from '$lib/models/schema';
 	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';

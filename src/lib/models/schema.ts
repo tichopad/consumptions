@@ -134,6 +134,7 @@ export const consumptionRecords = sqliteTable('consumptionRecords', {
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
 	consumption: real('consumption').notNull(),
 	measuringDeviceId: text('measuringDeviceId')
+		.notNull()
 		.references(() => measuringDevices.id)
 		.$type<ID>()
 });
@@ -152,7 +153,7 @@ export const selectConsumptionRecordSchema = createSelectSchema(consumptionRecor
 export const insertConsumptionRecordSchema = createInsertSchema(consumptionRecords, {
 	id: (schema) => schema.id.brand<'ID'>(),
 	measuringDeviceId: (schema) => schema.measuringDeviceId.brand<'ID'>(),
-	consumption: z.coerce.number().optional()
+	consumption: z.coerce.number()
 });
 
 export type ConsumptionRecord = typeof consumptionRecords.$inferSelect;
