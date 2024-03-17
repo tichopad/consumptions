@@ -5,7 +5,8 @@ import {
 	selectMeasuringDeviceSchema,
 	selectOccupantSchema,
 	type ConsumptionRecordInsert,
-	consumptionRecords
+	consumptionRecords,
+	energyBills
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
 import { fail, type Actions, type Load } from '@sveltejs/kit';
@@ -96,6 +97,11 @@ export const actions: Actions = {
 		console.log(JSON.stringify(form.data, null, 2));
 
 		for (const occupant of form.data.occupants) {
+			console.log('calculating bill', occupant.name);
+			if (occupant.measuringDevices.length > 0) {
+				console.log('no measuring devices');
+				continue;
+			}
 			const electricityConsumptionRecordInserts: ConsumptionRecordInsert[] =
 				occupant.measuringDevices.map((device) => {
 					return {
@@ -106,9 +112,28 @@ export const actions: Actions = {
 					};
 				});
 			const electricityConsumptionRecords = await db
+
 				.insert(consumptionRecords)
 				.values(electricityConsumptionRecordInserts)
 				.returning();
+			const electricityCost = getElectricityCostForOccupant(
+				occupant,
+				electricityConsumptionRecords,
+				form.data.electricityUnitCost,
+				69
+			);
+			const [electricityBill] = await db
+				.insert(energyBills)
+				.values({
+					startDate: form.data.startDate,
+					endDate: form.data.endDate,
+					occupantId: occupant.id,
+					energyType: 'electricity',
+					totalCost: electricityCost
+				})
+				.returning();
+			console.log(occupant.name);
+			console.log(electricityBill);
 		}
 
 		return { form };
