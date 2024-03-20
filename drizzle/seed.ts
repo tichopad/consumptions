@@ -1,17 +1,20 @@
 import { faker } from '@faker-js/faker/locale/cs_CZ';
 import { createClient } from '@libsql/client';
+import '@total-typescript/ts-reset';
 import { drizzle } from 'drizzle-orm/libsql';
 import { z } from 'zod';
-import { energyTypes, type ID } from '../src/lib/models/schema';
 import {
 	buildings,
 	consumptionRecords,
 	energyBills,
+	EnergyType,
+	energyTypes,
 	measuringDevices,
 	occupants,
 	type BuildingInsert,
 	type ConsumptionRecordInsert,
 	type EnergyBillInsert,
+	type ID,
 	type MeasuringDeviceInsert,
 	type OccupantInsert
 } from '../src/lib/models/schema';
@@ -30,9 +33,33 @@ const newOccupants = await db.insert(occupants).values(occupantsValues).returnin
 console.log('Inserted occupants:', newOccupants.map((o) => o.name).join(', '));
 
 const measuringDevicesValues = newOccupants.flatMap((occupant) => {
-	if (Math.random() > 0.5) return [];
-	const count = faker.number.int({ min: 1, max: 2 });
-	return new Array(count).fill(null).map(() => createMeasuringDevice(occupant.id));
+	return energyTypes
+		.map((energyType) => {
+			switch (energyType) {
+				case 'electricity': {
+					if (occupant.chargedUnmeasuredElectricity) {
+						return Math.random() > 0.5 ? null : createMeasuringDevice(occupant.id, energyType);
+					} else {
+						return createMeasuringDevice(occupant.id, energyType);
+					}
+				}
+				case 'heating': {
+					if (occupant.chargedUnmeasuredHeating) {
+						return Math.random() > 0.5 ? null : createMeasuringDevice(occupant.id, energyType);
+					} else {
+						return createMeasuringDevice(occupant.id, energyType);
+					}
+				}
+				case 'water': {
+					if (occupant.chargedUnmeasuredWater) {
+						return Math.random() > 0.5 ? null : createMeasuringDevice(occupant.id, energyType);
+					} else {
+						return createMeasuringDevice(occupant.id, energyType);
+					}
+				}
+			}
+		})
+		.filter(Boolean);
 });
 const newMeasuringDevices = await db
 	.insert(measuringDevices)
@@ -76,11 +103,16 @@ function createOccupant(buildingId: ID): OccupantInsert {
 		heatingFixedCostShare: Math.random() > 0.5 ? faker.number.float({ min: 0, max: 100 }) : null
 	};
 }
-function createMeasuringDevice(occupantId: ID): MeasuringDeviceInsert {
+function createMeasuringDevice(occupantId: ID, energyType: EnergyType): MeasuringDeviceInsert {
+	const names: Record<EnergyType, string[]> = {
+		electricity: ['Hlavní měřič', 'Přímotopný měřič', 'Měřič na kuchyňský sporák'],
+		heating: ['Hlavní měřič'],
+		water: ['Hlavní měřič', 'Měřič na kuchyňský dřez', 'Měřič na koupelnu']
+	};
 	return {
 		occupantId,
-		name: Math.random() > 0.7 ? faker.commerce.product() : 'Main meter',
-		energyType: faker.helpers.arrayElement(energyTypes)
+		name: faker.helpers.arrayElement(names[energyType]),
+		energyType
 	};
 }
 function createConsumptionRecord(measuringDeviceId: ID): ConsumptionRecordInsert {
@@ -89,8 +121,7 @@ function createConsumptionRecord(measuringDeviceId: ID): ConsumptionRecordInsert
 		measuringDeviceId,
 		startDate,
 		endDate: new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()),
-		consumption: faker.number.float({ min: 0, max: 1000 }),
-		unmeasured: faker.datatype.boolean()
+		consumption: faker.number.float({ min: 0, max: 1000 })
 	};
 }
 function createEnergyBill(buildingId: ID): EnergyBillInsert {

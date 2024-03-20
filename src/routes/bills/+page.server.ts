@@ -6,7 +6,9 @@ import {
 	selectOccupantSchema,
 	type ConsumptionRecordInsert,
 	consumptionRecords,
-	energyBills
+	energyBills,
+	type EnergyBill,
+	type EnergyBillInsert
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
 import { fail, type Actions, type Load } from '@sveltejs/kit';
@@ -96,46 +98,101 @@ export const actions: Actions = {
 
 		console.log(JSON.stringify(form.data, null, 2));
 
-		for (const occupant of form.data.occupants) {
-			console.log('calculating bill', occupant.name);
-			if (occupant.measuringDevices.length > 0) {
-				console.log('no measuring devices');
-				continue;
-			}
-			const electricityConsumptionRecordInserts: ConsumptionRecordInsert[] =
-				occupant.measuringDevices.map((device) => {
-					return {
-						measuringDeviceId: device.id,
-						startDate: form.data.startDate,
-						endDate: form.data.endDate,
-						consumption: device.consumption ?? 0
-					};
-				});
-			const electricityConsumptionRecords = await db
-
-				.insert(consumptionRecords)
-				.values(electricityConsumptionRecordInserts)
-				.returning();
-			const electricityCost = getElectricityCostForOccupant(
-				occupant,
-				electricityConsumptionRecords,
-				form.data.electricityUnitCost,
-				69
-			);
-			const [electricityBill] = await db
-				.insert(energyBills)
-				.values({
-					startDate: form.data.startDate,
-					endDate: form.data.endDate,
-					occupantId: occupant.id,
-					energyType: 'electricity',
-					totalCost: electricityCost
-				})
-				.returning();
-			console.log(occupant.name);
-			console.log(electricityBill);
-		}
+		await calculateElectricityBills(form.data);
 
 		return { form };
 	}
 };
+
+async function calculateElectricityBills(form: FormSchema): Promise<EnergyBill[]> {
+	// -- Measured --
+
+	const measuredOccupants = form.occupants.filter((occupant) => {
+		return occupant.chargedUnmeasuredElectricity === false;
+	});
+	const measuredConsumptionsInserts = measuredOccupants.flatMap((occupant) => {
+		return occupant.measuringDevices
+			.filter((device) => device.energyType === 'electricity')
+			.map((device): ConsumptionRecordInsert => {
+				return {
+					measuringDeviceId: device.id,
+					startDate: form.startDate,
+					endDate: form.endDate,
+					consumption: device.consumption ?? 0 // FIXME: Consumption should be required in the form
+				};
+			});
+	});
+
+	const measuredBillsInserts = measuredOccupants.map((occupant): EnergyBillInsert => {
+		const totalConsumption = occupant.measuringDevices.reduce(
+			(acc, device) => (device.consumption ?? 0) + acc,
+			0
+		);
+		const cost = getElectricityCostForOccupant(
+			occupant,
+			totalConsumption,
+			form.electricityUnitCost
+		);
+		return {
+			startDate: form.startDate,
+			endDate: form.endDate,
+			occupantId: occupant.id,
+			energyType: 'electricity',
+			totalCost: cost
+		};
+	});
+
+	const totalMeasuredCost = measuredBillsInserts.reduce((acc, bill) => acc + bill.totalCost, 0);
+
+	// -- Unmeasured --
+
+	const unmeasuredOccupants = form.occupants.filter((occupant) => {
+		return occupant.chargedUnmeasuredElectricity === true;
+	});
+	const totalUnmeasuredArea = unmeasuredOccupants.reduce(
+		(acc, occupant) => acc + occupant.squareMeters,
+		0
+	);
+	const remainingCost = form.electricityTotalCost - totalMeasuredCost;
+	const costPerSquareMeter = remainingCost / totalUnmeasuredArea;
+	const unmeasuredBillsInserts = unmeasuredOccupants.map((occupant): EnergyBillInsert => {
+		const cost = getElectricityCostForOccupant(
+			occupant,
+			null,
+			form.electricityUnitCost,
+			costPerSquareMeter
+		);
+		return {
+			startDate: form.startDate,
+			endDate: form.endDate,
+			occupantId: occupant.id,
+			energyType: 'electricity',
+			totalCost: cost
+		};
+	});
+
+	const totalUnmeasuredCost = unmeasuredBillsInserts.reduce((acc, bill) => acc + bill.totalCost, 0);
+
+	// -- Execute --
+
+	const bills: EnergyBill[] = [];
+
+	if (measuredConsumptionsInserts.length === 0) {
+		const [measuredBills, unmeasuredBills] = await db.batch([
+			db.insert(energyBills).values(measuredBillsInserts).returning(),
+			db.insert(energyBills).values(unmeasuredBillsInserts).returning()
+		]);
+		bills.push(...measuredBills, ...unmeasuredBills);
+	} else {
+		const [, measuredBills, unmeasuredBills] = await db.batch([
+			db.insert(consumptionRecords).values(measuredConsumptionsInserts).returning(),
+			db.insert(energyBills).values(measuredBillsInserts).returning(),
+			db.insert(energyBills).values(unmeasuredBillsInserts).returning()
+		]);
+		bills.push(...measuredBills, ...unmeasuredBills);
+	}
+
+	console.log({ totalMeasuredCost, totalUnmeasuredCost });
+
+	return bills;
+}

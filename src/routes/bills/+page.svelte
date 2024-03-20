@@ -104,11 +104,10 @@
 										name="occupants[{i}].measuringDevices[{j}]"
 									>
 										<Form.Control let:attrs>
-											<Form.Label>{device.name} ({device.energyType})</Form.Label>
 											<input type="hidden" bind:value={device.id} {...attrs} />
 										</Form.Control>
 										<Form.Control let:attrs>
-											<Form.Label>Consumption</Form.Label>
+											<Form.Label>{device.name} ({device.energyType})</Form.Label>
 											<Input type="number" {...attrs} bind:value={device.consumption} />
 										</Form.Control>
 									</Form.ElementField>
