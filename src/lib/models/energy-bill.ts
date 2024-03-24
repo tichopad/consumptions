@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { energyTypes, primaryIdColumn, type ID } from './common';
 import { buildings } from './building';
 import { occupants } from './occupant';
+import { billingPeriods } from './billing-period';
 
 // Table definition
 
@@ -20,6 +21,10 @@ export const energyBills = sqliteTable('energyBills', {
 		.$type<ID>(),
 	occupantId: text('occupantId')
 		.references(() => occupants.id)
+		.$type<ID>(),
+	billingPeriodId: text('billingPeriodId')
+		.notNull()
+		.references(() => billingPeriods.id)
 		.$type<ID>()
 });
 
@@ -33,6 +38,10 @@ export const energyBillsRelations = relations(energyBills, ({ one }) => ({
 	occupants: one(occupants, {
 		fields: [energyBills.occupantId],
 		references: [occupants.id]
+	}),
+	billingPeriods: one(billingPeriods, {
+		fields: [energyBills.billingPeriodId],
+		references: [billingPeriods.id]
 	})
 }));
 

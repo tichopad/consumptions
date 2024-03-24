@@ -2,7 +2,7 @@ import { relations } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { primaryIdColumn, type ID } from './common';
+import { primaryIdColumn, type ID, energyTypes } from './common';
 import { measuringDevices } from './measuring-device';
 
 // Table definition
@@ -11,6 +11,7 @@ export const consumptionRecords = sqliteTable('consumptionRecords', {
 	id: primaryIdColumn,
 	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
+	energyType: text('energyType', { enum: energyTypes }).notNull(),
 	consumption: real('consumption').notNull(),
 	measuringDeviceId: text('measuringDeviceId')
 		.notNull()

@@ -38,21 +38,21 @@ const measuringDevicesValues = newOccupants.flatMap((occupant) => {
 			switch (energyType) {
 				case 'electricity': {
 					if (occupant.chargedUnmeasuredElectricity) {
-						return Math.random() > 0.5 ? null : createMeasuringDevice(occupant.id, energyType);
+						return Math.random() > 0.3 ? null : createMeasuringDevice(occupant.id, energyType);
 					} else {
 						return createMeasuringDevice(occupant.id, energyType);
 					}
 				}
 				case 'heating': {
 					if (occupant.chargedUnmeasuredHeating) {
-						return Math.random() > 0.5 ? null : createMeasuringDevice(occupant.id, energyType);
+						return null;
 					} else {
 						return createMeasuringDevice(occupant.id, energyType);
 					}
 				}
 				case 'water': {
 					if (occupant.chargedUnmeasuredWater) {
-						return Math.random() > 0.5 ? null : createMeasuringDevice(occupant.id, energyType);
+						return Math.random() > 0.2 ? null : createMeasuringDevice(occupant.id, energyType);
 					} else {
 						return createMeasuringDevice(occupant.id, energyType);
 					}
@@ -67,10 +67,13 @@ const newMeasuringDevices = await db
 	.returning();
 console.log('Inserted measuring devices:', newMeasuringDevices.map((d) => d.name).join(', '));
 
+/*
 const consumptionRecordsValues = newMeasuringDevices.flatMap((device) => {
 	if (Math.random() > 0.5) return [];
 	const count = faker.number.int({ min: 1, max: 10 });
-	return new Array(count).fill(null).map(() => createConsumptionRecord(device.id));
+	return new Array(count)
+		.fill(null)
+		.map(() => createConsumptionRecord(device.id, device.energyType));
 });
 const newConsumptionRecords = await db
 	.insert(consumptionRecords)
@@ -83,6 +86,7 @@ const energyBillsValues = new Array(faker.number.int({ min: 5, max: 10 }))
 	.map(() => createEnergyBill(building.id));
 const newEnergyBills = await db.insert(energyBills).values(energyBillsValues).returning();
 console.log('Inserted energy bills:', newEnergyBills.length);
+*/
 
 // Helpers
 
@@ -93,14 +97,19 @@ function createBuilding(): BuildingInsert {
 	};
 }
 function createOccupant(buildingId: ID): OccupantInsert {
+	const isRenting = faker.datatype.boolean(0.75);
+	const chargedUnmeasuredHeating = isRenting;
+
 	return {
 		buildingId,
 		name: Math.random() > 0.6 ? faker.person.fullName() : faker.company.name(),
 		squareMeters: faker.number.int({ min: 10, max: 100 }),
-		chargedUnmeasuredElectricity: faker.datatype.boolean(),
-		chargedUnmeasuredHeating: faker.datatype.boolean(),
-		chargedUnmeasuredWater: faker.datatype.boolean(),
-		heatingFixedCostShare: Math.random() > 0.5 ? faker.number.float({ min: 0, max: 100 }) : null
+		chargedUnmeasuredElectricity: isRenting,
+		chargedUnmeasuredHeating,
+		chargedUnmeasuredWater: isRenting,
+		heatingFixedCostShare: chargedUnmeasuredHeating
+			? faker.number.float({ min: 0, max: 400 })
+			: null
 	};
 }
 function createMeasuringDevice(occupantId: ID, energyType: EnergyType): MeasuringDeviceInsert {
@@ -115,13 +124,17 @@ function createMeasuringDevice(occupantId: ID, energyType: EnergyType): Measurin
 		energyType
 	};
 }
-function createConsumptionRecord(measuringDeviceId: ID): ConsumptionRecordInsert {
+function createConsumptionRecord(
+	measuringDeviceId: ID,
+	energyType: EnergyType
+): ConsumptionRecordInsert {
 	const startDate = faker.date.recent();
 	return {
 		measuringDeviceId,
 		startDate,
 		endDate: new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()),
-		consumption: faker.number.float({ min: 0, max: 1000 })
+		consumption: faker.number.float({ min: 1, max: 1000 }),
+		energyType
 	};
 }
 function createEnergyBill(buildingId: ID): EnergyBillInsert {

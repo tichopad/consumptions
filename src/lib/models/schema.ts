@@ -1,3 +1,4 @@
+export * from './billing-period';
 export * from './building';
 export * from './common';
 export * from './consumption-record';

@@ -45,45 +45,55 @@
 			<Form.Field {form} name="electricityUnitCost">
 				<Form.Control let:attrs>
 					<Form.Label>Electricity Unit Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.electricityUnitCost} />
+					<Input type="number" step="0.001" {...attrs} bind:value={$formData.electricityUnitCost} />
 				</Form.Control>
 			</Form.Field>
 			<Form.Field {form} name="waterUnitCost">
 				<Form.Control let:attrs>
 					<Form.Label>Water Unit Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.waterUnitCost} />
+					<Input type="number" step="0.001" {...attrs} bind:value={$formData.waterUnitCost} />
 				</Form.Control>
 			</Form.Field>
 			<Form.Field {form} name="heatingUnitCost">
 				<Form.Control let:attrs>
 					<Form.Label>Heating Unit Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.heatingUnitCost} />
+					<Input type="number" step="0.001" {...attrs} bind:value={$formData.heatingUnitCost} />
 				</Form.Control>
 			</Form.Field>
 			<!-- Total cost -->
 			<Form.Field {form} name="electricityTotalCost">
 				<Form.Control let:attrs>
 					<Form.Label>Total Electricity Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.electricityTotalCost} />
+					<Input
+						type="number"
+						step="0.001"
+						{...attrs}
+						bind:value={$formData.electricityTotalCost}
+					/>
 				</Form.Control>
 			</Form.Field>
 			<Form.Field {form} name="waterTotalCost">
 				<Form.Control let:attrs>
 					<Form.Label>Total Water Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.waterTotalCost} />
+					<Input type="number" step="0.001" {...attrs} bind:value={$formData.waterTotalCost} />
 				</Form.Control>
 			</Form.Field>
 			<Form.Field {form} name="heatingTotalCost">
 				<Form.Control let:attrs>
 					<Form.Label>Total Heating Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.heatingTotalCost} />
+					<Input type="number" step="0.001" {...attrs} bind:value={$formData.heatingTotalCost} />
 				</Form.Control>
 			</Form.Field>
 			<!-- Total fixed cost -->
 			<Form.Field {form} name="heatingTotalFixedCost">
 				<Form.Control let:attrs>
 					<Form.Label>Total Fixed Heating Cost</Form.Label>
-					<Input type="number" {...attrs} bind:value={$formData.heatingTotalFixedCost} />
+					<Input
+						type="number"
+						step="0.001"
+						{...attrs}
+						bind:value={$formData.heatingTotalFixedCost}
+					/>
 				</Form.Control>
 			</Form.Field>
 			<Form.Fieldset {form} name="occupants">
@@ -108,7 +118,12 @@
 										</Form.Control>
 										<Form.Control let:attrs>
 											<Form.Label>{device.name} ({device.energyType})</Form.Label>
-											<Input type="number" {...attrs} bind:value={device.consumption} />
+											<Input
+												type="number"
+												step="0.001"
+												{...attrs}
+												bind:value={device.consumption}
+											/>
 										</Form.Control>
 									</Form.ElementField>
 								{/each}
