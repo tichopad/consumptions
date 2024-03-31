@@ -22,12 +22,13 @@ import { z } from 'zod';
 
 const formSchema = z.object({
 	// Dates
-	startDate: z.coerce.date(),
-	endDate: z.coerce.date(),
-	// Energy unit costs
-	electricityUnitCost: z.coerce.number(),
-	waterUnitCost: z.coerce.number(),
-	heatingUnitCost: z.coerce.number(),
+	dateRange: z.object({
+		start: z.coerce.date(),
+		end: z.coerce.date()
+	}),
+	electricityTotalConsumption: z.coerce.number(),
+	waterTotalConsumption: z.coerce.number(),
+	heatingTotalConsumption: z.coerce.number(),
 	// Total costs
 	electricityTotalCost: z.coerce.number(),
 	waterTotalCost: z.coerce.number(),
@@ -91,7 +92,7 @@ export const load: Load = async () => {
 
 export const actions: Actions = {
 	createBill: async (event) => {
-		console.log('eyy');
+		console.group('createBill');
 
 		const form = await superValidate(event, zod(formSchema));
 
@@ -105,8 +106,8 @@ export const actions: Actions = {
 			.insert(billingPeriods)
 			.values({
 				buildingId: form.data.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
-				startDate: form.data.startDate,
-				endDate: form.data.endDate
+				startDate: form.data.dateRange.start,
+				endDate: form.data.dateRange.end
 			})
 			.returning();
 
@@ -121,6 +122,8 @@ export const actions: Actions = {
 			return fail(500, { form });
 		}
 
+		console.groupEnd();
+
 		return { form };
 	}
 };
@@ -129,6 +132,10 @@ async function calculateElectricityBills(
 	form: FormSchema,
 	billingPeriod: BillingPeriod
 ): Promise<EnergyBill[]> {
+	const unitCost = new BigNumber(form.electricityTotalCost).dividedBy(
+		form.electricityTotalConsumption
+	);
+
 	// Get occupants with measuring devices
 	const measuredOccupants = form.occupants.filter((occupant) => {
 		return occupant.measuringDevices.some((device) => device.energyType === 'electricity');
@@ -140,8 +147,8 @@ async function calculateElectricityBills(
 			.map((device): ConsumptionRecordInsert => {
 				return {
 					measuringDeviceId: device.id,
-					startDate: form.startDate,
-					endDate: form.endDate,
+					startDate: form.dateRange.start,
+					endDate: form.dateRange.end,
 					energyType: device.energyType,
 					consumption: device.consumption ?? 0
 				};
@@ -152,10 +159,10 @@ async function calculateElectricityBills(
 		const totalConsumption = occupant.measuringDevices
 			.filter((device) => device.energyType === 'electricity')
 			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc).toNumber(), 0);
-		const cost = new BigNumber(totalConsumption).times(form.electricityUnitCost).toNumber();
+		const cost = new BigNumber(totalConsumption).times(unitCost).toNumber();
 		return {
-			startDate: form.startDate,
-			endDate: form.endDate,
+			startDate: form.dateRange.start,
+			endDate: form.dateRange.end,
 			occupantId: occupant.id,
 			energyType: 'electricity',
 			totalCost: cost,
@@ -180,8 +187,8 @@ async function calculateElectricityBills(
 	const unmeasuredBillsInserts = unmeasuredOccupants.map((occupant): EnergyBillInsert => {
 		const cost = new BigNumber(occupant.squareMeters).times(costPerSquareMeter).toNumber();
 		return {
-			startDate: form.startDate,
-			endDate: form.endDate,
+			startDate: form.dateRange.start,
+			endDate: form.dateRange.end,
 			occupantId: occupant.id,
 			energyType: 'electricity',
 			totalCost: cost,
@@ -195,8 +202,8 @@ async function calculateElectricityBills(
 	);
 
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
-		startDate: form.startDate,
-		endDate: form.endDate,
+		startDate: form.dateRange.start,
+		endDate: form.dateRange.end,
 		buildingId: form.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
 		energyType: 'electricity',
 		totalCost: form.electricityTotalCost,
@@ -228,6 +235,8 @@ async function calculateWaterBills(
 	form: FormSchema,
 	billingPeriod: BillingPeriod
 ): Promise<EnergyBill[]> {
+	const unitCost = new BigNumber(form.waterTotalCost).dividedBy(form.waterTotalConsumption);
+
 	// Get occupants with measuring devices
 	const measuredOccupants = form.occupants.filter((occupant) => {
 		return occupant.measuringDevices.some((device) => device.energyType === 'water');
@@ -239,8 +248,8 @@ async function calculateWaterBills(
 			.map((device): ConsumptionRecordInsert => {
 				return {
 					measuringDeviceId: device.id,
-					startDate: form.startDate,
-					endDate: form.endDate,
+					startDate: form.dateRange.start,
+					endDate: form.dateRange.end,
 					energyType: device.energyType,
 					consumption: device.consumption ?? 0
 				};
@@ -251,10 +260,10 @@ async function calculateWaterBills(
 		const totalConsumption = occupant.measuringDevices
 			.filter((device) => device.energyType === 'water')
 			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc).toNumber(), 0);
-		const cost = new BigNumber(totalConsumption).times(form.waterUnitCost).toNumber();
+		const cost = new BigNumber(totalConsumption).times(unitCost).toNumber();
 		return {
-			startDate: form.startDate,
-			endDate: form.endDate,
+			startDate: form.dateRange.start,
+			endDate: form.dateRange.end,
 			occupantId: occupant.id,
 			energyType: 'water',
 			totalCost: cost,
@@ -279,8 +288,8 @@ async function calculateWaterBills(
 	const unmeasuredBillsInserts = unmeasuredOccupants.map((occupant): EnergyBillInsert => {
 		const cost = new BigNumber(occupant.squareMeters).times(costPerSquareMeter).toNumber();
 		return {
-			startDate: form.startDate,
-			endDate: form.endDate,
+			startDate: form.dateRange.start,
+			endDate: form.dateRange.end,
 			occupantId: occupant.id,
 			energyType: 'water',
 			totalCost: cost,
@@ -294,8 +303,8 @@ async function calculateWaterBills(
 	);
 
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
-		startDate: form.startDate,
-		endDate: form.endDate,
+		startDate: form.dateRange.start,
+		endDate: form.dateRange.end,
 		buildingId: form.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
 		energyType: 'water',
 		totalCost: form.waterTotalCost,
@@ -327,6 +336,8 @@ async function calculateHeatingBills(
 	form: FormSchema,
 	billingPeriod: BillingPeriod
 ): Promise<EnergyBill[]> {
+	const unitCost = new BigNumber(form.heatingTotalCost).dividedBy(form.heatingTotalConsumption);
+
 	// Get occupants with measuring devices
 	const measuredOccupants = form.occupants.filter((occupant) =>
 		occupant.measuringDevices.some((device) => device.energyType === 'heating')
@@ -338,8 +349,8 @@ async function calculateHeatingBills(
 			.map(
 				(device): ConsumptionRecordInsert => ({
 					measuringDeviceId: device.id,
-					startDate: form.startDate,
-					endDate: form.endDate,
+					startDate: form.dateRange.start,
+					endDate: form.dateRange.end,
 					energyType: device.energyType,
 					consumption: device.consumption ?? 0
 				})
@@ -350,14 +361,14 @@ async function calculateHeatingBills(
 		const measuredCost = occupant.measuringDevices
 			.filter((device) => device.energyType === 'heating')
 			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc), new BigNumber(0))
-			.multipliedBy(form.heatingUnitCost);
+			.multipliedBy(unitCost);
 		const totalFixedCost = new BigNumber(form.heatingTotalFixedCost ?? 0);
 		const unitFixedCost = totalFixedCost.dividedBy(781);
 		const fixedCost = unitFixedCost.multipliedBy(occupant.heatingFixedCostShare ?? 0).toNumber();
 		const totalCost = measuredCost.plus(fixedCost).toNumber();
 		return {
-			startDate: form.startDate,
-			endDate: form.endDate,
+			startDate: form.dateRange.start,
+			endDate: form.dateRange.end,
 			occupantId: occupant.id,
 			energyType: 'heating',
 			totalCost,
@@ -388,8 +399,8 @@ async function calculateHeatingBills(
 		const fixedCost = unitFixedCost.multipliedBy(occupant.heatingFixedCostShare ?? 0).toNumber();
 		const totalCost = unmeasuredCost.plus(fixedCost).toNumber();
 		return {
-			startDate: form.startDate,
-			endDate: form.endDate,
+			startDate: form.dateRange.start,
+			endDate: form.dateRange.end,
 			occupantId: occupant.id,
 			energyType: 'heating',
 			totalCost,
@@ -404,8 +415,8 @@ async function calculateHeatingBills(
 	);
 
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
-		startDate: form.startDate,
-		endDate: form.endDate,
+		startDate: form.dateRange.start,
+		endDate: form.dateRange.end,
 		buildingId: form.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
 		energyType: 'heating',
 		totalCost: form.heatingTotalCost,
