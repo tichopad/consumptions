@@ -13,7 +13,7 @@ import {
 	type BillingPeriod
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
-import { fail, type Actions, type Load } from '@sveltejs/kit';
+import { fail, type Actions, type Load, redirect } from '@sveltejs/kit';
 import BigNumber from 'bignumber.js';
 import { asc, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
@@ -124,7 +124,7 @@ export const actions: Actions = {
 
 		console.groupEnd();
 
-		return { form };
+		return redirect(302, `/bills/${billingPeriod.id}`);
 	}
 };
 

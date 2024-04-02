@@ -23,6 +23,7 @@
 	import LightbulbIcon from '$lib/components/icons/lightbulb.svelte';
 	import FlameIcon from '$lib/components/icons/flame.svelte';
 	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
+	import type { Occupant } from '$lib/models/occupant';
 
 	export let data;
 
@@ -61,10 +62,29 @@
 			$formData.dateRange.end = dateRange.end?.toDate('UTC');
 		}
 	}
+
+	const listFormatter = new Intl.ListFormat('en', {
+		style: 'long',
+		type: 'conjunction'
+	});
+	const isChargedForUnmeasuredEnergy = (occupant: Occupant): boolean => {
+		return (
+			occupant.chargedUnmeasuredElectricity ||
+			occupant.chargedUnmeasuredHeating ||
+			occupant.chargedUnmeasuredWater
+		);
+	};
+	const formattedListOfUnmeasuredEnergyTypes = (occupant: Occupant): string => {
+		const energyTypes: string[] = [];
+		if (occupant.chargedUnmeasuredElectricity) energyTypes.push('electricity');
+		if (occupant.chargedUnmeasuredHeating) energyTypes.push('heating');
+		if (occupant.chargedUnmeasuredWater) energyTypes.push('water');
+		return listFormatter.format(energyTypes);
+	};
 </script>
 
 <main
-	class="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
+	class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
 >
 	<div>
 		<h1 class="text-2xl font-bold">Create new bill</h1>
@@ -112,7 +132,7 @@
 										bind:value={dateRange}
 										class="rounded-md border shadow"
 										initialFocus
-										numberOfMonths={3}
+										weekStartsOn={1}
 									/>
 								</Popover.Content>
 							</Popover.Root>
@@ -153,6 +173,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.electricityTotalCost}
 											/>
@@ -168,6 +189,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.electricityTotalConsumption}
 											/>
@@ -191,6 +213,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.waterTotalCost}
 											/>
@@ -206,6 +229,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.waterTotalConsumption}
 											/>
@@ -229,6 +253,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.heatingTotalCost}
 											/>
@@ -242,6 +267,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.heatingTotalFixedCost}
 											/>
@@ -256,6 +282,7 @@
 												type="number"
 												step="0.001"
 												placeholder="0.000"
+												class="bg-background"
 												{...attrs}
 												bind:value={$formData.heatingTotalConsumption}
 											/>
@@ -289,19 +316,9 @@
 											<dd>{occupant.squareMeters} m²</dd>
 										</div>
 										<div class="flex items-center justify-between">
-											{#if occupant.chargedUnmeasuredElectricity || occupant.chargedUnmeasuredWater || occupant.chargedUnmeasuredHeating}
+											{#if isChargedForUnmeasuredEnergy(occupant)}
 												<dt class="text-muted-foreground">
-													Is charged for
-													{#if occupant.chargedUnmeasuredElectricity}
-														electricity,
-													{/if}
-													{#if occupant.chargedUnmeasuredWater}
-														water,
-													{/if}
-													{#if occupant.chargedUnmeasuredHeating}
-														heating
-													{/if}
-													based on area.
+													Is charged for {formattedListOfUnmeasuredEnergyTypes(occupant)} based on area.
 												</dt>
 											{:else}
 												<dt class="text-muted-foreground">
