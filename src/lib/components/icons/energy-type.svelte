@@ -1,11 +1,13 @@
 <script lang="ts">
-	import type { EnergyType } from '$lib/models/common';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import { labelsByEnergyType, type EnergyType } from '$lib/models/common';
 	import { cn } from '$lib/utils';
 	import type { ComponentType } from 'svelte';
 	import DropletsIcon from './droplets.svelte';
 	import FlameIcon from './flame.svelte';
 	import LightbulbIcon from './lightbulb.svelte';
 
+	/** Energy type the icon represents */
 	export let energyType: EnergyType;
 
 	const iconByEnergyType = {
@@ -15,14 +17,19 @@
 	} as const satisfies Record<EnergyType, ComponentType>;
 </script>
 
-<svelte:component
-	this={iconByEnergyType[energyType]}
-	class={cn(
-		{
-			'text-yellow-500': energyType === 'electricity',
-			'text-blue-600': energyType === 'water',
-			'text-red-600': energyType === 'heating'
-		},
-		$$props.class
-	)}
-/>
+<Tooltip.Root openDelay={300}>
+	<Tooltip.Trigger>
+		<svelte:component
+			this={iconByEnergyType[energyType]}
+			class={cn(
+				{
+					'text-yellow-500': energyType === 'electricity',
+					'text-blue-600': energyType === 'water',
+					'text-red-600': energyType === 'heating'
+				},
+				$$props.class
+			)}
+		/>
+	</Tooltip.Trigger>
+	<Tooltip.Content>{labelsByEnergyType[energyType]}</Tooltip.Content>
+</Tooltip.Root>

@@ -1,11 +1,11 @@
 <script lang="ts">
-	export let data;
-
-	import '../app.css';
 	import Package from '$lib/components/icons/package.svelte';
-	import SearchIcon from '$lib/components/icons/search.svelte';
-	import { Input } from '$lib/components/ui/input';
+	// import SearchIcon from '$lib/components/icons/search.svelte';
+	// import { Input } from '$lib/components/ui/input';
 	import { Toaster } from '$lib/components/ui/sonner';
+	import '../app.css';
+
+	export let data;
 </script>
 
 <div class="flex flex-col w-full min-h-screen">
@@ -28,7 +28,7 @@
 				>
 			{/each}
 		</nav>
-		<div class="flex items-center w-full gap-4 md:ml-auto md:gap-2 lg:gap-4">
+		<!-- <div class="flex items-center w-full gap-4 md:ml-auto md:gap-2 lg:gap-4">
 			<form class="flex-1 ml-auto sm:flex-initial">
 				<div class="relative">
 					<SearchIcon class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
@@ -39,7 +39,7 @@
 					/>
 				</div>
 			</form>
-		</div>
+		</div> -->
 	</header>
 	<slot />
 	<Toaster />
