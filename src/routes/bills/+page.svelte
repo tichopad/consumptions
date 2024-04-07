@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
@@ -38,7 +39,10 @@
 						<Table.Body>
 							{#each data.allBillingPeriods as billingPeriod (billingPeriod.id)}
 								{@const totalCosts = data.totalCosts.get(billingPeriod.id)}
-								<Table.Row>
+								<Table.Row
+									class="cursor-pointer"
+									on:click={() => goto(`/bills/${billingPeriod.id}`)}
+								>
 									<Table.Cell class="font-medium">
 										{$dateFmt.format(billingPeriod.startDate)}
 									</Table.Cell>

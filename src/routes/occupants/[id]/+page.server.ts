@@ -20,7 +20,8 @@ export const load: Load = async ({ params }) => {
 	const occupant = await db.query.occupants.findFirst({
 		where: eq(occupants.id, parsed.data),
 		with: {
-			measuringDevices: true
+			measuringDevices: true,
+			energyBills: true
 		}
 	});
 

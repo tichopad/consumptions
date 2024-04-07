@@ -5,32 +5,15 @@
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
+	import { currencyFmt, dateFmt, numberFmt } from '$lib/i18n/stores';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
 	import { Person as PersonIcon } from 'radix-icons-svelte';
 
 	export let data;
 
-	const electricityBill = data.buildingWithBills?.energyBills.find(
-		(bill) => bill.energyType === 'electricity'
-	);
-	const heatingBill = data.buildingWithBills?.energyBills.find(
-		(bill) => bill.energyType === 'heating'
-	);
-	const waterBill = data.buildingWithBills?.energyBills.find((bill) => bill.energyType === 'water');
-
 	const sumAllBills = (occupant: (typeof data.occupantsWithBills)[number]): number => {
 		return occupant.energyBills.reduce((acc, bill) => acc + bill.totalCost, 0);
 	};
-
-	// FIXME: use the store
-	const locale = 'en-US';
-	const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'long' });
-	const numberFormatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
-	const currencyFormatter = new Intl.NumberFormat(locale, {
-		currency: 'CZK',
-		maximumFractionDigits: 2,
-		style: 'currency'
-	});
 </script>
 
 <!-- FIXME: make this a part of the layout or create a page component -->
@@ -38,13 +21,12 @@
 	<main
 		class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 lg:max-w-5xl"
 	>
-		<Header1>Billing period</Header1>
-		<Header2>
-			From
-			{dateFormatter.format(data.billingPeriod.startDate)}
+		<Header2>Billing period</Header2>
+		<Header1>
+			{$dateFmt.format(data.billingPeriod.startDate)}
 			-
-			{dateFormatter.format(data.billingPeriod.endDate)}
-		</Header2>
+			{$dateFmt.format(data.billingPeriod.endDate)}
+		</Header1>
 		<Card.Root>
 			<Card.Header>
 				<Card.Title>Total cost and consumption</Card.Title>
@@ -63,7 +45,7 @@
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#if electricityBill}
+						{#if data.electricityBill}
 							<Table.Row>
 								<Table.Cell class="font-medium">
 									<div class="flex items-center gap-1">
@@ -72,16 +54,16 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>
-									{numberFormatter.format(42069)}
+									{$numberFmt.format(42069)}
 									{unitsByEnergyType['electricity']}
 								</Table.Cell>
 								<Table.Cell>
-									{currencyFormatter.format(electricityBill.totalCost)}
+									{$currencyFmt.format(data.electricityBill.totalCost)}
 								</Table.Cell>
 								<Table.Cell />
 							</Table.Row>
 						{/if}
-						{#if waterBill}
+						{#if data.waterBill}
 							<Table.Row>
 								<Table.Cell class="font-medium">
 									<div class="flex items-center gap-1">
@@ -90,16 +72,16 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>
-									{numberFormatter.format(42069)}
+									{$numberFmt.format(42069)}
 									{unitsByEnergyType['water']}
 								</Table.Cell>
 								<Table.Cell>
-									{currencyFormatter.format(waterBill.totalCost)}
+									{$currencyFmt.format(data.waterBill.totalCost)}
 								</Table.Cell>
 								<Table.Cell />
 							</Table.Row>
 						{/if}
-						{#if heatingBill}
+						{#if data.heatingBill}
 							<Table.Row>
 								<Table.Cell class="font-medium">
 									<div class="flex items-center gap-1">
@@ -108,15 +90,15 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>
-									{numberFormatter.format(42069)}
+									{$numberFmt.format(42069)}
 									{unitsByEnergyType['heating']}
 								</Table.Cell>
 								<Table.Cell>
-									{currencyFormatter.format(heatingBill.totalCost)}
+									{$currencyFmt.format(data.heatingBill.totalCost)}
 								</Table.Cell>
 								<Table.Cell>
-									{#if heatingBill.fixedCost !== null}
-										{currencyFormatter.format(heatingBill.fixedCost)}
+									{#if data.heatingBill.fixedCost !== null}
+										{$currencyFmt.format(data.heatingBill.fixedCost)}
 									{/if}
 								</Table.Cell>
 							</Table.Row>
@@ -141,7 +123,7 @@
 									<PersonIcon class="w-4 h-6 text-muted-foreground" />
 									{occupant.name}
 								</div>
-								<div class="ml-auto pr-4">{currencyFormatter.format(totalCost)}</div>
+								<div class="ml-auto pr-4">{$currencyFmt.format(totalCost)}</div>
 							</Accordion.Trigger>
 							<Accordion.Content>
 								<Table.Root>
@@ -163,13 +145,13 @@
 													</div>
 												</Table.Cell>
 												<!-- FIXME: get consumption -->
-												<Table.Cell>{numberFormatter.format(69420)}</Table.Cell>
+												<Table.Cell>{$numberFmt.format(69420)}</Table.Cell>
 												<Table.Cell>
-													{currencyFormatter.format(bill.totalCost)}
+													{$currencyFmt.format(bill.totalCost)}
 												</Table.Cell>
 												<Table.Cell>
 													{#if bill.fixedCost !== null && bill.fixedCost > 0}
-														{currencyFormatter.format(bill.fixedCost)}
+														{$currencyFmt.format(bill.fixedCost)}
 													{/if}
 												</Table.Cell>
 											</Table.Row>
@@ -177,7 +159,7 @@
 										<Table.Row class="font-medium bg-muted">
 											<Table.Cell></Table.Cell>
 											<Table.Cell />
-											<Table.Cell>{currencyFormatter.format(totalCost)}</Table.Cell>
+											<Table.Cell>{$currencyFmt.format(totalCost)}</Table.Cell>
 											<!-- FIXME: sum fixed costs? -->
 											<Table.Cell />
 										</Table.Row>

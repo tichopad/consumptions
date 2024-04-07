@@ -1,6 +1,6 @@
 import { billingPeriods, selectBillingPeriodSchema } from '$lib/models/billing-period';
 import { buildings } from '$lib/models/building';
-import { energyBills } from '$lib/models/energy-bill';
+import { energyBills, type EnergyBill } from '$lib/models/energy-bill';
 import { occupants } from '$lib/models/occupant';
 import { db } from '$lib/server/db/client';
 import { error, type Load } from '@sveltejs/kit';
@@ -56,9 +56,35 @@ export const load: Load = async ({ params }) => {
 		}
 	});
 
+	let electricityBill: EnergyBill | undefined;
+	let heatingBill: EnergyBill | undefined;
+	let waterBill: EnergyBill | undefined;
+
+	if (buildingWithBills?.energyBills !== undefined) {
+		for (const bill of buildingWithBills.energyBills) {
+			switch (bill.energyType) {
+				case 'electricity': {
+					electricityBill = bill;
+					break;
+				}
+				case 'heating': {
+					heatingBill = bill;
+					break;
+				}
+				case 'water': {
+					waterBill = bill;
+					break;
+				}
+			}
+		}
+	}
+
 	return {
 		billingPeriod,
 		buildingWithBills,
-		occupantsWithBills
+		occupantsWithBills,
+		electricityBill,
+		heatingBill,
+		waterBill
 	};
 };

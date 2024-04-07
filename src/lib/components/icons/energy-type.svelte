@@ -9,6 +9,8 @@
 
 	/** Energy type the icon represents */
 	export let energyType: EnergyType;
+	/** Whether to render the icon with a hoverable tooltip */
+	export let withTooltip = true;
 
 	const iconByEnergyType = {
 		electricity: LightbulbIcon,
@@ -17,19 +19,34 @@
 	} as const satisfies Record<EnergyType, ComponentType>;
 </script>
 
-<Tooltip.Root openDelay={300}>
-	<Tooltip.Trigger>
-		<svelte:component
-			this={iconByEnergyType[energyType]}
-			class={cn(
-				{
-					'text-yellow-500': energyType === 'electricity',
-					'text-blue-600': energyType === 'water',
-					'text-red-600': energyType === 'heating'
-				},
-				$$props.class
-			)}
-		/>
-	</Tooltip.Trigger>
-	<Tooltip.Content>{labelsByEnergyType[energyType]}</Tooltip.Content>
-</Tooltip.Root>
+{#if withTooltip}
+	<Tooltip.Root openDelay={300}>
+		<Tooltip.Trigger>
+			<svelte:component
+				this={iconByEnergyType[energyType]}
+				class={cn(
+					{
+						'text-yellow-500': energyType === 'electricity',
+						'text-blue-600': energyType === 'water',
+						'text-red-600': energyType === 'heating'
+					},
+					$$props.class
+				)}
+			/>
+		</Tooltip.Trigger>
+		<Tooltip.Content>{labelsByEnergyType[energyType]}</Tooltip.Content>
+	</Tooltip.Root>
+{:else}
+	<svelte:component
+		this={iconByEnergyType[energyType]}
+		class={cn(
+			{
+				'text-yellow-500': energyType === 'electricity',
+				'text-blue-600': energyType === 'water',
+				'text-red-600': energyType === 'heating'
+			},
+			$$props.class
+		)}
+		title={labelsByEnergyType[energyType]}
+	/>
+{/if}
