@@ -1,4 +1,5 @@
 import { numberFmt } from '$lib/i18n/stores';
+import BigNumber from 'bignumber.js';
 import { get } from 'svelte/store';
 import { z } from 'zod';
 
@@ -23,7 +24,8 @@ export const createOccupantFormSchema = z.object({
 			required_error: 'Area is required'
 		})
 		.positive(`Area must be greater than ${get(numberFmt).format(0)} m²`)
-		.max(10000, `Area cannot be greater than ${get(numberFmt).format(10000)} m²`),
+		.max(10000, `Area cannot be greater than ${get(numberFmt).format(10000)} m²`)
+		.transform((value) => new BigNumber(value).decimalPlaces(3).toNumber()),
 	chargedUnmeasuredElectricity: z.boolean({
 		coerce: true,
 		invalid_type_error:
@@ -47,9 +49,14 @@ export const createOccupantFormSchema = z.object({
 			coerce: true,
 			invalid_type_error: 'The heating fixed cost share coefficient has to be a number'
 		})
-		.positive('Fixed heating cost share has to be greater than 0')
+		.nonnegative('Fixed heating cost share cannot be negative')
 		.max(781, `Fixed heating cost share cannot be greater than ${get(numberFmt).format(781)}`)
+		.transform((value) => {
+			console.log({ value }); // FIXME: allow undefined/null HOW??
+			return new BigNumber(value).decimalPlaces(3).toNumber();
+		})
 		.optional()
+		.nullable()
 });
 
 export type CreateOccupantForm = typeof createOccupantFormSchema;

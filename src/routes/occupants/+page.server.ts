@@ -3,7 +3,7 @@ import { db } from '$lib/server/db/client';
 import { fail, redirect, type Actions, type Load } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { createOccupantFormSchema } from './create-form-schema';
+import { createOccupantFormSchema } from './create-edit-form-schema';
 
 export const load: Load = async () => {
 	const form = await superValidate(zod(createOccupantFormSchema));

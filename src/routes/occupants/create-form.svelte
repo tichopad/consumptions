@@ -7,7 +7,7 @@
 	import { labelsByEnergyType } from '$lib/models/common';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms/client';
-	import { createOccupantFormSchema, type CreateOccupantForm } from './create-form-schema';
+	import { createOccupantFormSchema, type CreateOccupantForm } from './create-edit-form-schema';
 
 	/** Form's data */
 	export let data: SuperValidated<Infer<CreateOccupantForm>>;
@@ -17,6 +17,7 @@
 
 	const form = superForm(data, {
 		validators: zodClient(createOccupantFormSchema),
+		// TODO: remove console log, add toasts
 		onError({ result }) {
 			console.log(result.error);
 		},

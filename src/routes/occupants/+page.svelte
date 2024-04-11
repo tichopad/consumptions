@@ -65,6 +65,7 @@
 						</Table.Header>
 						<Table.Body>
 							{#each data.occupants as occupant (occupant.id)}
+								<!-- FIXME: should be a proper link  -->
 								<Table.Row
 									class="cursor-pointer"
 									on:click={() => goto(`/occupants/${occupant.id}`)}
