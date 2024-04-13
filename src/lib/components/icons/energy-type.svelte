@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { labelsByEnergyType, type EnergyType } from '$lib/models/common';
-	import { cn } from '$lib/utils';
+	import { cn } from '$lib/components/ui/utils';
 	import type { ComponentType } from 'svelte';
 	import DropletsIcon from './droplets.svelte';
 	import FlameIcon from './flame.svelte';

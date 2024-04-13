@@ -1,4 +1,5 @@
 import { numberFmt } from '$lib/i18n/stores';
+import { isEmptyStringTrimmed, isNullable } from '$lib/utils';
 import BigNumber from 'bignumber.js';
 import { get } from 'svelte/store';
 import { z } from 'zod';
@@ -44,19 +45,19 @@ export const createOccupantFormSchema = z.object({
 			'Whether the occupant is charged for heating consumption based on their area has to be specified',
 		required_error: 'Has to either be true or false'
 	}),
-	heatingFixedCostShare: z
-		.number({
-			coerce: true,
-			invalid_type_error: 'The heating fixed cost share coefficient has to be a number'
-		})
-		.nonnegative('Fixed heating cost share cannot be negative')
-		.max(781, `Fixed heating cost share cannot be greater than ${get(numberFmt).format(781)}`)
-		.transform((value) => {
-			console.log({ value }); // FIXME: allow undefined/null HOW??
-			return new BigNumber(value).decimalPlaces(3).toNumber();
-		})
-		.optional()
-		.nullable()
+	heatingFixedCostShare: z.preprocess(
+		(value) => (isEmptyStringTrimmed(value) || isNullable(value) ? null : Number(value)),
+		z
+			.number({
+				invalid_type_error: 'The heating fixed cost share coefficient has to be a number'
+			})
+			.gt(0, 'Fixed heating cost share has to be greater than 0')
+			.max(781, `Fixed heating cost share cannot be greater than ${get(numberFmt).format(781)}`)
+			.transform((value) => new BigNumber(value).decimalPlaces(3).toNumber())
+			.nullable()
+			.optional()
+			.default(null)
+	)
 });
 
 export type CreateOccupantForm = typeof createOccupantFormSchema;

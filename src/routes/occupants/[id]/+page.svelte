@@ -31,6 +31,18 @@
 			} else {
 				toast.error('Failed to update occupant.');
 			}
+		},
+		onChange(event) {
+			console.log('changed', event);
+		},
+		onError(event) {
+			console.log('error', event);
+		},
+		onSubmit(event) {
+			console.log('submit', event);
+		},
+		onUpdate(event) {
+			console.log('update', event);
 		}
 	});
 
@@ -80,7 +92,12 @@
 							<Form.Field {form} name="heatingFixedCostShare" class="flex-1">
 								<Form.Control let:attrs>
 									<Form.Label>Fixed heating cost share</Form.Label>
-									<Input {...attrs} bind:value={$formData.heatingFixedCostShare} />
+									<Input
+										{...attrs}
+										type="number"
+										step="0.001"
+										bind:value={$formData.heatingFixedCostShare}
+									/>
 								</Form.Control>
 								<Form.Description>
 									Defines if and how much does the occupant contribute to the recurring fixed

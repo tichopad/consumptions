@@ -11,8 +11,6 @@ import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { createOccupantFormSchema } from '../create-edit-form-schema';
 
-const editOccupantFormSchema = createOccupantFormSchema;
-
 export const load: Load = async ({ params }) => {
 	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
 
@@ -35,7 +33,7 @@ export const load: Load = async ({ params }) => {
 	return {
 		occupant,
 		insertMeasuringDeviceForm: await superValidate(zod(insertMeasuringDeviceSchema)),
-		editOccupantForm: await superValidate(occupant, zod(editOccupantFormSchema))
+		editOccupantForm: await superValidate(occupant, zod(createOccupantFormSchema))
 	};
 };
 
@@ -56,7 +54,7 @@ export const actions: Actions = {
 
 		console.log(event.params);
 
-		const form = await superValidate(event, zod(editOccupantFormSchema));
+		const form = await superValidate(event, zod(createOccupantFormSchema));
 
 		console.log({ valid: form.valid });
 

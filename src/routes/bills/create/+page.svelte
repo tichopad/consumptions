@@ -3,7 +3,7 @@
 	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import * as Popover from '$lib/components/ui/popover';
-	import { cn } from '$lib/utils';
+	import { cn } from '$lib/components/ui/utils';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Calendar as CalendarIcon, Person as PersonIcon } from 'svelte-radix';
 	import { RangeCalendar } from '$lib/components/ui/range-calendar';
