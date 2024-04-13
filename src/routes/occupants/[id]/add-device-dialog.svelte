@@ -14,13 +14,12 @@
 
 	const form = superForm(data, {
 		validators: zodClient(insertMeasuringDeviceSchema),
-		onError({ result }) {
-			// TODO: better error messages
-			toast.error(result.error.message);
-		},
 		onUpdated({ form }) {
-			if (form.valid && form.message) {
-				toast.success(form.message);
+			console.log(form);
+			if (form.valid) {
+				toast.success(form.message ?? 'Measuring device created.');
+			} else {
+				toast.error(`Failed to add new measuring device.`);
 			}
 		}
 	});

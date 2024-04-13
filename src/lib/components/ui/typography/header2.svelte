@@ -4,7 +4,7 @@
 
 <h1
 	class={cn(
-		'scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0',
+		'scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-tight transition-colors first:mt-0',
 		$$props.class
 	)}
 >

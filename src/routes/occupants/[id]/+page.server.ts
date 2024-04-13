@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db/client';
 import {
 	insertMeasuringDeviceSchema,
+	labelsByEnergyType,
 	measuringDevices,
 	occupants,
 	selectOccupantSchema
@@ -38,31 +39,27 @@ export const load: Load = async ({ params }) => {
 };
 
 export const actions: Actions = {
+	/**
+	 * Handles measuring device creation
+	 */
 	createMeasuringDevice: async (event) => {
 		const form = await superValidate(event, zod(insertMeasuringDeviceSchema));
 
 		if (!form.valid) return fail(400, { form });
 
-		await db.insert(measuringDevices).values(form.data).returning();
+		const [newDevice] = await db.insert(measuringDevices).values(form.data).returning();
 
-		form.message = 'Measuring device created';
-
-		return { form };
+		return message(
+			form,
+			`New ${labelsByEnergyType[newDevice.energyType].toLocaleLowerCase()} measuring device created.`
+		);
 	},
 	editOccupant: async (event) => {
-		console.group('editOccupant');
-
-		console.log(event.params);
-
 		const form = await superValidate(event, zod(createOccupantFormSchema));
-
-		console.log({ valid: form.valid });
 
 		if (!form.valid) return fail(400, { form });
 
 		const parsedId = selectOccupantSchema.shape.id.safeParse(event.params.id);
-
-		console.log({ parsedId });
 
 		if (!parsedId.success) return fail(400, { form });
 
@@ -72,10 +69,6 @@ export const actions: Actions = {
 			.where(eq(occupants.id, parsedId.data))
 			.returning();
 
-		console.log({ updatedOccupant });
-
-		console.groupEnd();
-
-		return message(form, `Occupant ${updatedOccupant.name} updated.`);
+		return message(form, `${updatedOccupant.name} updated.`);
 	}
 };

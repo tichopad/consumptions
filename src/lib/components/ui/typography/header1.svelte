@@ -2,6 +2,8 @@
 	import { cn } from '$lib/components/ui/utils';
 </script>
 
-<h1 class={cn('scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl', $$props.class)}>
+<h1
+	class={cn('scroll-m-20 text-3xl py-3 font-extrabold tracking-tight lg:text-4xl', $$props.class)}
+>
 	<slot />
 </h1>

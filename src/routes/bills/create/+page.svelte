@@ -24,6 +24,7 @@
 	import FlameIcon from '$lib/components/icons/flame.svelte';
 	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
 	import type { Occupant } from '$lib/models/occupant';
+	import Header1 from '$lib/components/ui/typography/header1.svelte';
 
 	export let data;
 
@@ -86,9 +87,7 @@
 <main
 	class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
 >
-	<div>
-		<h1 class="text-2xl font-bold">Create new bill</h1>
-	</div>
+	<Header1>Create new bill</Header1>
 	<div>
 		<form method="post" action="?/createBill" use:enhance class="flex flex-col gap-2">
 			<h2 class="text-xl py-2 font-medium">Basic</h2>
