@@ -10,3 +10,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 local.db*
 .turbo
+
+# wrangler files
+.wrangler
+.dev.vars

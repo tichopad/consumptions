@@ -1,0 +1,4 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "consumptions"
+compatibility_date = "2024-04-05"
