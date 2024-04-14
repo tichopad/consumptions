@@ -1,25 +1,29 @@
 <script lang="ts">
-	import { pushState } from '$app/navigation';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import { insertMeasuringDeviceSchema, type EnergyType, type ID } from '$lib/models/schema';
+	import { insertMeasuringDeviceSchema, type EnergyType, type Occupant } from '$lib/models/schema';
 	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 
+	export let open = false;
 	export let data: SuperValidated<Infer<typeof insertMeasuringDeviceSchema>>;
-	export let occupantId: ID;
+	export let occupant: Occupant;
 
 	const form = superForm(data, {
 		validators: zodClient(insertMeasuringDeviceSchema),
 		onUpdated({ form }) {
 			console.log(form);
 			if (form.valid) {
+				if (form.posted) {
+					// FIXME: maybe use flash message for this and drive the modal off of search params?
+					open = false;
+				}
 				toast.success(form.message ?? 'Measuring device created.');
 			} else {
-				toast.error(`Failed to add new measuring device.`);
+				toast.error(`Failed to add new measuring device for ${occupant.name}.`);
 			}
 		}
 	});
@@ -33,17 +37,11 @@
 	];
 </script>
 
-<Dialog.Root
-	open
-	onOpenChange={(isOpen) => {
-		// The dialog uses shallow routing, so it can be closed by navigating back
-		if (!isOpen) pushState('', { showModal: false });
-	}}
->
+<Dialog.Root bind:open>
 	<Dialog.Trigger />
 	<Dialog.Content class="sm:max-w-[425px]">
 		<form method="post" action="?/createMeasuringDevice" use:enhance>
-			<input type="hidden" name="occupantId" value={occupantId} />
+			<input type="hidden" name="occupantId" value={occupant.id} />
 			<Dialog.Header>
 				<Dialog.Title>Add measuring device</Dialog.Title>
 				<Dialog.Description>
