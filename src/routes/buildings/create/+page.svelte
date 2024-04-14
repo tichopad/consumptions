@@ -11,7 +11,8 @@
 			/>
 		</div>
 		<div class="mb-4">
-			<label for="squareMeters" class="block text-gray-700 text-sm font-bold mb-2">Area (m2):</label>
+			<label for="squareMeters" class="block text-gray-700 text-sm font-bold mb-2">Area (m2):</label
+			>
 			<input
 				type="number"
 				id="squareMeters"

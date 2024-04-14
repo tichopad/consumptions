@@ -363,7 +363,10 @@
 													<Table.Cell>{device.name}</Table.Cell>
 													<Table.Cell>
 														<input type="hidden" bind:value={device.id} />
-														<Form.ElementField {form} name="occupants[{i}].measuringDevices[{j}]">
+														<Form.ElementField
+															{form}
+															name="occupants[{i}].measuringDevices[{j}].consumption"
+														>
 															<Form.Control let:attrs>
 																<Input
 																	type="number"
