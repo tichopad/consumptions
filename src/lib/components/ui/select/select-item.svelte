@@ -4,6 +4,7 @@
 	import { Check } from 'radix-icons-svelte';
 
 	type $$Props = SelectPrimitive.ItemProps;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Events = Required<SelectPrimitive.ItemEvents>;
 
 	let className: $$Props['class'] = undefined;

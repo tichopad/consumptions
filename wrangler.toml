@@ -2,3 +2,8 @@
 
 name = "consumptions"
 compatibility_date = "2024-04-05"
+
+# Adding Pages config here somehow prevents env. variables
+# defined in the CF dashboard from loading at build time
+# This can probably be figured out later, but a potential fix
+# could be to ditch CF build and instead deploy from GH Actions

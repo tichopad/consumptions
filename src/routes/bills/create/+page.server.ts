@@ -1,19 +1,19 @@
-import { getElectricityCostForOccupant } from '$lib/bills/electricity';
 import {
+	billingPeriods,
+	consumptionRecords,
+	energyBills,
 	insertMeasuringDeviceSchema,
 	occupants,
 	selectMeasuringDeviceSchema,
 	selectOccupantSchema,
+	type BillingPeriod,
 	type ConsumptionRecordInsert,
-	consumptionRecords,
-	energyBills,
 	type EnergyBill,
 	type EnergyBillInsert,
-	billingPeriods,
-	type BillingPeriod
+	type ID
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
-import { fail, type Actions, type Load, redirect } from '@sveltejs/kit';
+import { fail, redirect, type Actions, type Load } from '@sveltejs/kit';
 import BigNumber from 'bignumber.js';
 import { asc, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
@@ -102,20 +102,30 @@ export const actions: Actions = {
 
 		console.log(JSON.stringify(form.data, null, 2));
 
+		const building = await db.query.buildings.findFirst();
+
+		if (building === undefined) {
+			return fail(500, { form, message: 'No building found' });
+		}
+
 		const [billingPeriod] = await db
 			.insert(billingPeriods)
 			.values({
-				buildingId: form.data.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
+				buildingId: building.id,
 				startDate: form.data.dateRange.start,
 				endDate: form.data.dateRange.end
 			})
 			.returning();
 
+		if (billingPeriod === undefined) {
+			return fail(500, { form, message: 'Failed to insert billing period to database' });
+		}
+
 		try {
 			// FIXME: actual transaction?
-			await calculateElectricityBills(form.data, billingPeriod);
-			await calculateWaterBills(form.data, billingPeriod);
-			await calculateHeatingBills(form.data, billingPeriod);
+			await calculateElectricityBills(form.data, billingPeriod, building.id);
+			await calculateWaterBills(form.data, billingPeriod, building.id);
+			await calculateHeatingBills(form.data, billingPeriod, building.id);
 		} catch (error) {
 			console.error(error);
 			await db.delete(billingPeriods).where(eq(billingPeriods.id, billingPeriod.id));
@@ -130,7 +140,8 @@ export const actions: Actions = {
 
 async function calculateElectricityBills(
 	form: FormSchema,
-	billingPeriod: BillingPeriod
+	billingPeriod: BillingPeriod,
+	buildingId: ID
 ): Promise<EnergyBill[]> {
 	const unitCost = new BigNumber(form.electricityTotalCost).dividedBy(
 		form.electricityTotalConsumption
@@ -204,7 +215,7 @@ async function calculateElectricityBills(
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
 		startDate: form.dateRange.start,
 		endDate: form.dateRange.end,
-		buildingId: form.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
+		buildingId,
 		energyType: 'electricity',
 		totalCost: form.electricityTotalCost,
 		billingPeriodId: billingPeriod.id
@@ -233,7 +244,8 @@ async function calculateElectricityBills(
 
 async function calculateWaterBills(
 	form: FormSchema,
-	billingPeriod: BillingPeriod
+	billingPeriod: BillingPeriod,
+	buildingId: ID
 ): Promise<EnergyBill[]> {
 	const unitCost = new BigNumber(form.waterTotalCost).dividedBy(form.waterTotalConsumption);
 
@@ -305,7 +317,7 @@ async function calculateWaterBills(
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
 		startDate: form.dateRange.start,
 		endDate: form.dateRange.end,
-		buildingId: form.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
+		buildingId,
 		energyType: 'water',
 		totalCost: form.waterTotalCost,
 		billingPeriodId: billingPeriod.id
@@ -334,7 +346,8 @@ async function calculateWaterBills(
 
 async function calculateHeatingBills(
 	form: FormSchema,
-	billingPeriod: BillingPeriod
+	billingPeriod: BillingPeriod,
+	buildingId: ID
 ): Promise<EnergyBill[]> {
 	const unitCost = new BigNumber(form.heatingTotalCost).dividedBy(form.heatingTotalConsumption);
 
@@ -417,7 +430,7 @@ async function calculateHeatingBills(
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
 		startDate: form.dateRange.start,
 		endDate: form.dateRange.end,
-		buildingId: form.occupants[0].buildingId, //FIXME: we need to get the building ID from a better source
+		buildingId,
 		energyType: 'heating',
 		totalCost: form.heatingTotalCost,
 		fixedCost: form.heatingTotalFixedCost,

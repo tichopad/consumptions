@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db/client';
 import { buildings, insertBuildingSchema } from '$lib/models/schema';
-import { redirect, type Actions } from '@sveltejs/kit';
+import { fail, redirect, type Actions } from '@sveltejs/kit';
 
 export const actions = {
 	default: async (event) => {
@@ -19,6 +19,10 @@ export const actions = {
 		const [building] = await db.insert(buildings).values(parsed.data).returning();
 
 		console.log('Created building', building);
+
+		if (building === undefined) {
+			return fail(500, { message: 'Failed to insert building to database' });
+		}
 
 		return redirect(302, `/buildings/${building.id}`);
 	}

@@ -4,6 +4,7 @@
 	import { cn } from '$lib/components/ui/utils';
 
 	type $$Props = RangeCalendarPrimitive.Props;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Events = RangeCalendarPrimitive.Events;
 
 	export let value: $$Props['value'] = undefined;

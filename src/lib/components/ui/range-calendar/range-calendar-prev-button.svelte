@@ -5,6 +5,7 @@
 	import { cn } from '$lib/components/ui/utils';
 
 	type $$Props = RangeCalendarPrimitive.PrevButtonProps;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Events = RangeCalendarPrimitive.PrevButtonEvents;
 
 	let className: $$Props['class'] = undefined;

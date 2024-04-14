@@ -4,6 +4,7 @@
 	import { cn } from '$lib/components/ui/utils';
 
 	type $$Props = RangeCalendarPrimitive.DayProps;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Events = RangeCalendarPrimitive.DayEvents;
 
 	export let date: $$Props['date'];

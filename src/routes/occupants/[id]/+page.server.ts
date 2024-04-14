@@ -49,6 +49,10 @@ export const actions: Actions = {
 
 		const [newDevice] = await db.insert(measuringDevices).values(form.data).returning();
 
+		if (newDevice === undefined) {
+			return fail(500, { form, message: 'Failed to insert device to database' });
+		}
+
 		return message(
 			form,
 			`New ${labelsByEnergyType[newDevice.energyType].toLocaleLowerCase()} measuring device created.`
@@ -68,6 +72,10 @@ export const actions: Actions = {
 			.set(form.data)
 			.where(eq(occupants.id, parsedId.data))
 			.returning();
+
+		if (updatedOccupant === undefined) {
+			return fail(500, { form, message: 'Failed to update occupant in database' });
+		}
 
 		return message(form, `${updatedOccupant.name} updated.`);
 	}

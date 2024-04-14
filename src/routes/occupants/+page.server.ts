@@ -37,6 +37,10 @@ export const actions: Actions = {
 		};
 		const [createdOccupant] = await db.insert(occupants).values(occupantInsertValues).returning();
 
+		if (createdOccupant === undefined) {
+			return fail(500, { form, message: 'Failed to insert occupant to database' });
+		}
+
 		return redirect(304, `/occupants/${createdOccupant.id}`);
 	}
 };

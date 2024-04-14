@@ -4,6 +4,7 @@
 	import { cn } from '$lib/components/ui/utils';
 
 	type $$Props = SelectPrimitive.TriggerProps;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Events = SelectPrimitive.TriggerEvents;
 
 	let className: $$Props['class'] = undefined;

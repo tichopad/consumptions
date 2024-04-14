@@ -4,6 +4,7 @@
 	import { cn } from '$lib/components/ui/utils';
 
 	type $$Props = AccordionPrimitive.TriggerProps;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Events = AccordionPrimitive.TriggerEvents;
 
 	let className: $$Props['class'] = undefined;

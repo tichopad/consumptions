@@ -1,30 +1,23 @@
 <script lang="ts">
-	import SuperDebug, { superForm } from 'sveltekit-superforms';
+	import DropletsIcon from '$lib/components/icons/droplets.svelte';
+	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
+	import FlameIcon from '$lib/components/icons/flame.svelte';
+	import LightbulbIcon from '$lib/components/icons/lightbulb.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
 	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import * as Popover from '$lib/components/ui/popover';
-	import { cn } from '$lib/components/ui/utils';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Calendar as CalendarIcon, Person as PersonIcon } from 'svelte-radix';
 	import { RangeCalendar } from '$lib/components/ui/range-calendar';
-	import {
-		today,
-		getLocalTimeZone,
-		CalendarDate,
-		DateFormatter,
-		type DateValue
-	} from '@internationalized/date';
-	import type { DateRange } from 'bits-ui';
-	import DropletsIcon from '$lib/components/icons/droplets.svelte';
-	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
-	import { measuringDevices } from '$lib/models/measuring-device';
-	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
-	import LightbulbIcon from '$lib/components/icons/lightbulb.svelte';
-	import FlameIcon from '$lib/components/icons/flame.svelte';
-	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
-	import type { Occupant } from '$lib/models/occupant';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
+	import { cn } from '$lib/components/ui/utils';
+	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
+	import type { Occupant } from '$lib/models/occupant';
+	import { DateFormatter, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
+	import type { DateRange } from 'bits-ui';
+	import { Calendar as CalendarIcon, Person as PersonIcon } from 'svelte-radix';
+	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
 

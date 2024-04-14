@@ -5,15 +5,11 @@ import { drizzle } from 'drizzle-orm/libsql';
 import { z } from 'zod';
 import {
 	buildings,
-	consumptionRecords,
-	energyBills,
 	EnergyType,
 	energyTypes,
 	measuringDevices,
 	occupants,
 	type BuildingInsert,
-	type ConsumptionRecordInsert,
-	type EnergyBillInsert,
 	type ID,
 	type MeasuringDeviceInsert,
 	type OccupantInsert
@@ -124,28 +120,29 @@ function createMeasuringDevice(occupantId: ID, energyType: EnergyType): Measurin
 		energyType
 	};
 }
-function createConsumptionRecord(
-	measuringDeviceId: ID,
-	energyType: EnergyType
-): ConsumptionRecordInsert {
-	const startDate = faker.date.recent();
-	return {
-		measuringDeviceId,
-		startDate,
-		endDate: new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()),
-		consumption: faker.number.float({ min: 1, max: 1000 }),
-		energyType
-	};
-}
-function createEnergyBill(buildingId: ID): EnergyBillInsert {
-	const startDate = faker.date.recent();
-	const energyType = faker.helpers.arrayElement(energyTypes);
-	return {
-		buildingId,
-		startDate,
-		endDate: new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()),
-		energyType,
-		totalCost: faker.number.int({ min: 100_000, max: 10_000_000 }),
-		fixedCost: energyType === 'heating' ? faker.number.int({ min: 20_000, max: 200_000 }) : null
-	};
-}
+
+// function createConsumptionRecord(
+// 	measuringDeviceId: ID,
+// 	energyType: EnergyType
+// ): ConsumptionRecordInsert {
+// 	const startDate = faker.date.recent();
+// 	return {
+// 		measuringDeviceId,
+// 		startDate,
+// 		endDate: new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()),
+// 		consumption: faker.number.float({ min: 1, max: 1000 }),
+// 		energyType
+// 	};
+// }
+// function createEnergyBill(buildingId: ID): EnergyBillInsert {
+// 	const startDate = faker.date.recent();
+// 	const energyType = faker.helpers.arrayElement(energyTypes);
+// 	return {
+// 		buildingId,
+// 		startDate,
+// 		endDate: new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()),
+// 		energyType,
+// 		totalCost: faker.number.int({ min: 100_000, max: 10_000_000 }),
+// 		fixedCost: energyType === 'heating' ? faker.number.int({ min: 20_000, max: 200_000 }) : null
+// 	};
+// }
