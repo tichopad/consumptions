@@ -3,31 +3,37 @@
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import { insertMeasuringDeviceSchema, type EnergyType, type Occupant } from '$lib/models/schema';
+	import { type EnergyType, type Occupant } from '$lib/models/schema';
 	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { addDeviceFormSchema, type AddDeviceForm } from './add-device-form-schema';
 
+	/** Controls whether the dialog's open */
 	export let open = false;
-	export let data: SuperValidated<Infer<typeof insertMeasuringDeviceSchema>>;
+	/** Form data from superforms */
+	export let data: SuperValidated<Infer<AddDeviceForm>>;
+	/** The device owner */
 	export let occupant: Occupant;
 
 	const form = superForm(data, {
-		validators: zodClient(insertMeasuringDeviceSchema),
+		validators: zodClient(addDeviceFormSchema),
 		onUpdated({ form }) {
-			console.log(form);
 			if (form.valid) {
 				if (form.posted) {
-					// FIXME: maybe use flash message for this and drive the modal off of search params?
 					open = false;
 				}
 				toast.success(form.message ?? 'Measuring device created.');
 			} else {
 				toast.error(`Failed to add new measuring device for ${occupant.name}.`);
 			}
+		},
+		onError({ result }) {
+			if (result.error.message) {
+				toast.error(result.error.message);
+			}
 		}
 	});
-
 	const { form: formData, enhance, delayed } = form;
 
 	const energies: { value: EnergyType; label: string }[] = [

@@ -23,6 +23,11 @@
 			} else {
 				toast.error(`Failed to update ${occupant.name}.`);
 			}
+		},
+		onError({ result }) {
+			if (result.error.message) {
+				toast.error(result.error.message);
+			}
 		}
 	});
 

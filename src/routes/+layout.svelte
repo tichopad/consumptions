@@ -42,5 +42,5 @@
 		</div> -->
 	</header>
 	<slot />
-	<Toaster closeButton richColors />
+	<Toaster closeButton richColors position="bottom-center" />
 </div>

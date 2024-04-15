@@ -7,19 +7,37 @@
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
 	import { labelsByEnergyType } from '$lib/models/common';
+	import type { MeasuringDevice } from '$lib/models/measuring-device';
 	import { DotsHorizontal as DotsHorizontalIcon } from 'svelte-radix';
-	import AddMeasuringDeviceFormDialog from './add-device-dialog.svelte';
+	import AddDeviceDialog from './add-device-form.svelte';
+	import EditDeviceDialog from './edit-device-form.svelte';
 	import EditForm from './edit-form.svelte';
 
 	export let data;
 
-	$: isDeviceDialogOpen = false;
+	// Add device dialog controls
+	let isAddDeviceDialogOpen = false;
+
+	// Edit device dialog controls
+	let isEditDeviceDialogOpen = false;
+	let selectedDevice: MeasuringDevice | null = null;
+	const openEditDevice = (device: MeasuringDevice) => {
+		selectedDevice = device;
+		isEditDeviceDialogOpen = true;
+	};
 </script>
 
-<AddMeasuringDeviceFormDialog
-	bind:open={isDeviceDialogOpen}
+<AddDeviceDialog
+	bind:open={isAddDeviceDialogOpen}
 	data={data.insertMeasuringDeviceForm}
 	occupant={data.occupant}
+/>
+
+<EditDeviceDialog
+	bind:open={isEditDeviceDialogOpen}
+	data={data.editMeasuringDeviceForm}
+	occupant={data.occupant}
+	device={selectedDevice}
 />
 
 <Page>
@@ -40,7 +58,7 @@
 		<Card.Header>
 			<Card.Title class="flex justify-between items-center -my-2">
 				<span>Measuring devices</span>
-				<Button on:click={() => (isDeviceDialogOpen = true)}>Add device</Button>
+				<Button on:click={() => (isAddDeviceDialogOpen = true)}>Add device</Button>
 			</Card.Title>
 			<Card.Description>List of all the occupant's measuring devices</Card.Description>
 		</Card.Header>
@@ -60,7 +78,7 @@
 					</Table.Header>
 					<Table.Body>
 						{#each data.occupant.measuringDevices as device (device.id)}
-							<Table.Row>
+							<Table.Row class="cursor-pointer" on:click={() => openEditDevice(device)}>
 								<Table.Cell>
 									<div class="flex gap-1 items-center font-medium">
 										<EnergyTypeIcon

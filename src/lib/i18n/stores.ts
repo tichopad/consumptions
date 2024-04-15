@@ -21,3 +21,19 @@ export const currencyFmt = derived(locale, ($l) => {
 		style: 'currency'
 	});
 });
+
+/** Conjunction list formatter */
+export const conjunctionListFmt = derived(locale, ($l) => {
+	return new Intl.ListFormat($l, {
+		style: 'long',
+		type: 'conjunction'
+	});
+});
+
+/** Conjunction list formatter */
+export const disjunctionListFmt = derived(locale, ($l) => {
+	return new Intl.ListFormat($l, {
+		style: 'long',
+		type: 'conjunction'
+	});
+});

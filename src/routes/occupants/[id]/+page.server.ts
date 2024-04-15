@@ -1,4 +1,3 @@
-import { db } from '$lib/server/db/client';
 import {
 	insertMeasuringDeviceSchema,
 	labelsByEnergyType,
@@ -6,18 +5,18 @@ import {
 	occupants,
 	selectOccupantSchema
 } from '$lib/models/schema';
+import { db } from '$lib/server/db/client';
 import { error, fail, type Actions, type Load } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { createOccupantFormSchema } from '../create-edit-form-schema';
+import { editDeviceFormSchema } from './edit-device-form-schema';
 
 export const load: Load = async ({ params }) => {
 	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
 
-	if (!parsed.success) {
-		error(400, 'Invalid id');
-	}
+	if (!parsed.success) error(400, 'Invalid id');
 
 	const occupant = await db.query.occupants.findFirst({
 		where: eq(occupants.id, parsed.data),
@@ -34,30 +33,15 @@ export const load: Load = async ({ params }) => {
 	return {
 		occupant,
 		insertMeasuringDeviceForm: await superValidate(zod(insertMeasuringDeviceSchema)),
-		editOccupantForm: await superValidate(occupant, zod(createOccupantFormSchema))
+		editOccupantForm: await superValidate(occupant, zod(createOccupantFormSchema)),
+		editMeasuringDeviceForm: await superValidate(zod(editDeviceFormSchema))
 	};
 };
 
 export const actions: Actions = {
 	/**
-	 * Handles measuring device creation
+	 * Handles occupant updates
 	 */
-	createMeasuringDevice: async (event) => {
-		const form = await superValidate(event, zod(insertMeasuringDeviceSchema));
-
-		if (!form.valid) return fail(400, { form });
-
-		const [newDevice] = await db.insert(measuringDevices).values(form.data).returning();
-
-		if (newDevice === undefined) {
-			return fail(500, { form, message: 'Failed to insert device to database' });
-		}
-
-		return message(
-			form,
-			`New ${labelsByEnergyType[newDevice.energyType].toLocaleLowerCase()} measuring device created.`
-		);
-	},
 	editOccupant: async (event) => {
 		const form = await superValidate(event, zod(createOccupantFormSchema));
 
@@ -78,5 +62,44 @@ export const actions: Actions = {
 		}
 
 		return message(form, `${updatedOccupant.name} updated.`);
+	},
+	/**
+	 * Handles measuring device creation
+	 */
+	createMeasuringDevice: async (event) => {
+		const form = await superValidate(event, zod(insertMeasuringDeviceSchema));
+
+		if (!form.valid) return fail(400, { form });
+
+		const [newDevice] = await db.insert(measuringDevices).values(form.data).returning();
+
+		if (newDevice === undefined) {
+			return fail(500, { form, message: 'Failed to insert device to database' });
+		}
+
+		return message(
+			form,
+			`New ${labelsByEnergyType[newDevice.energyType].toLocaleLowerCase()} measuring device created.`
+		);
+	},
+	/**
+	 * Handles updating occupant's measuring device
+	 */
+	editMeasuringDevice: async (event) => {
+		const form = await superValidate(event, zod(editDeviceFormSchema));
+
+		if (!form.valid) return fail(400, { form });
+
+		const [device] = await db
+			.update(measuringDevices)
+			.set(form.data)
+			.where(eq(measuringDevices.id, form.data.id))
+			.returning();
+
+		if (device === undefined) {
+			return fail(500, { form, message: 'Failed to update device in database' });
+		}
+
+		return message(form, `Measuring device "${device.name}" updated.`);
 	}
 };

@@ -12,11 +12,13 @@
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import { cn } from '$lib/components/ui/utils';
+	import { conjunctionListFmt } from '$lib/i18n/stores.js';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
 	import type { Occupant } from '$lib/models/occupant';
 	import { DateFormatter, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import type { DateRange } from 'bits-ui';
 	import { Calendar as CalendarIcon, Person as PersonIcon } from 'svelte-radix';
+	import { get } from 'svelte/store';
 	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
@@ -57,10 +59,6 @@
 		}
 	}
 
-	const listFormatter = new Intl.ListFormat('en', {
-		style: 'long',
-		type: 'conjunction'
-	});
 	const isChargedForUnmeasuredEnergy = (occupant: Occupant): boolean => {
 		return (
 			occupant.chargedUnmeasuredElectricity ||
@@ -68,12 +66,13 @@
 			occupant.chargedUnmeasuredWater
 		);
 	};
+
 	const formattedListOfUnmeasuredEnergyTypes = (occupant: Occupant): string => {
 		const energyTypes: string[] = [];
 		if (occupant.chargedUnmeasuredElectricity) energyTypes.push('electricity');
 		if (occupant.chargedUnmeasuredHeating) energyTypes.push('heating');
 		if (occupant.chargedUnmeasuredWater) energyTypes.push('water');
-		return listFormatter.format(energyTypes);
+		return get(conjunctionListFmt).format(energyTypes);
 	};
 </script>
 
