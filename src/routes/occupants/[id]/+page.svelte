@@ -8,35 +8,53 @@
 	import Page from '$lib/components/ui/typography/page.svelte';
 	import { labelsByEnergyType } from '$lib/models/common';
 	import type { MeasuringDevice } from '$lib/models/measuring-device';
-	import { DotsHorizontal as DotsHorizontalIcon } from 'svelte-radix';
-	import AddDeviceDialog from './add-device-form.svelte';
-	import EditDeviceDialog from './edit-device-form.svelte';
+	import { Cross1 as Cross1Icon } from 'svelte-radix';
+	import AddDeviceForm from './add-device-form.svelte';
+	import EditDeviceForm from './edit-device-form.svelte';
 	import EditForm from './edit-form.svelte';
+	import DeleteDeviceForm from './delete-device-form.svelte';
+	import type { ButtonEventHandler } from 'bits-ui';
 
 	export let data;
 
 	// Add device dialog controls
 	let isAddDeviceDialogOpen = false;
 
+	// Current device for edit and delete dialogs
+	let selectedDevice: MeasuringDevice | null = null;
+
 	// Edit device dialog controls
 	let isEditDeviceDialogOpen = false;
-	let selectedDevice: MeasuringDevice | null = null;
-	const openEditDevice = (device: MeasuringDevice) => {
+	const openEditDevice = (device: MeasuringDevice) => () => {
 		selectedDevice = device;
 		isEditDeviceDialogOpen = true;
 	};
+
+	// Delete device dialog controls
+	let isDeleteDeviceDialogOpen = false;
+	const openDeleteDevice = (device: MeasuringDevice) => (event: ButtonEventHandler<MouseEvent>) => {
+		event.stopPropagation();
+		selectedDevice = device;
+		isDeleteDeviceDialogOpen = true;
+	};
 </script>
 
-<AddDeviceDialog
+<AddDeviceForm
 	bind:open={isAddDeviceDialogOpen}
 	data={data.insertMeasuringDeviceForm}
 	occupant={data.occupant}
 />
 
-<EditDeviceDialog
+<EditDeviceForm
 	bind:open={isEditDeviceDialogOpen}
 	data={data.editMeasuringDeviceForm}
 	occupant={data.occupant}
+	device={selectedDevice}
+/>
+
+<DeleteDeviceForm
+	bind:open={isDeleteDeviceDialogOpen}
+	data={data.deleteMeasuringDeviceForm}
 	device={selectedDevice}
 />
 
@@ -78,7 +96,7 @@
 					</Table.Header>
 					<Table.Body>
 						{#each data.occupant.measuringDevices as device (device.id)}
-							<Table.Row class="cursor-pointer" on:click={() => openEditDevice(device)}>
+							<Table.Row class="cursor-pointer" on:click={openEditDevice(device)}>
 								<Table.Cell>
 									<div class="flex gap-1 items-center font-medium">
 										<EnergyTypeIcon
@@ -91,8 +109,13 @@
 								</Table.Cell>
 								<Table.Cell>{device.name}</Table.Cell>
 								<Table.Cell>
-									<Button variant="outline" size="icon">
-										<DotsHorizontalIcon class="w-4 h-4" />
+									<Button
+										type="submit"
+										variant="destructive"
+										size="icon"
+										on:click={openDeleteDevice(device)}
+									>
+										<Cross1Icon class="w-4 h-4" />
 									</Button>
 								</Table.Cell>
 							</Table.Row>

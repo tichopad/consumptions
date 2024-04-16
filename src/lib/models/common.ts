@@ -43,3 +43,6 @@ export const primaryIdColumn = text('id').primaryKey().notNull().$defaultFn(id).
 
 /** Defines a boolean column in a Drizzle table definition for SQLite */
 export const booleanColumn = (columnName: string) => integer(columnName, { mode: 'boolean' });
+
+/** Defines a soft-delete column in Drizzle table definition for SQLite */
+export const softDeleteColumn = booleanColumn('isDeleted').notNull().default(false);

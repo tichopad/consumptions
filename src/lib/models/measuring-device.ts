@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { energyTypes, primaryIdColumn, type ID } from './common';
+import { energyTypes, primaryIdColumn, softDeleteColumn, type ID } from './common';
 import { consumptionRecords } from './consumption-record';
 import { occupants } from './occupant';
 
@@ -10,6 +10,7 @@ import { occupants } from './occupant';
 export const measuringDevices = sqliteTable('measuringDevices', {
 	id: primaryIdColumn,
 	name: text('name').notNull(),
+	isDeleted: softDeleteColumn,
 	energyType: text('energyType', { enum: energyTypes }).notNull(),
 	occupantId: text('occupantId')
 		.notNull()

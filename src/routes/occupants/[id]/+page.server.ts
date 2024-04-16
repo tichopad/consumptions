@@ -1,4 +1,5 @@
 import {
+	energyBills,
 	insertMeasuringDeviceSchema,
 	labelsByEnergyType,
 	measuringDevices,
@@ -11,7 +12,9 @@ import { eq } from 'drizzle-orm';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { createOccupantFormSchema } from '../create-edit-form-schema';
+import { deleteDeviceFormSchema } from './delete-device-form-schema';
 import { editDeviceFormSchema } from './edit-device-form-schema';
+import { LibsqlError } from '@libsql/client';
 
 export const load: Load = async ({ params }) => {
 	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
@@ -21,7 +24,9 @@ export const load: Load = async ({ params }) => {
 	const occupant = await db.query.occupants.findFirst({
 		where: eq(occupants.id, parsed.data),
 		with: {
-			measuringDevices: true,
+			measuringDevices: {
+				where: eq(measuringDevices.isDeleted, false)
+			},
 			energyBills: true
 		}
 	});
@@ -34,7 +39,8 @@ export const load: Load = async ({ params }) => {
 		occupant,
 		insertMeasuringDeviceForm: await superValidate(zod(insertMeasuringDeviceSchema)),
 		editOccupantForm: await superValidate(occupant, zod(createOccupantFormSchema)),
-		editMeasuringDeviceForm: await superValidate(zod(editDeviceFormSchema))
+		editMeasuringDeviceForm: await superValidate(zod(editDeviceFormSchema)),
+		deleteMeasuringDeviceForm: await superValidate(zod(deleteDeviceFormSchema))
 	};
 };
 
@@ -100,6 +106,31 @@ export const actions: Actions = {
 			return fail(500, { form, message: 'Failed to update device in database' });
 		}
 
-		return message(form, `Measuring device "${device.name}" updated.`);
+		return message(form, `Measuring device ${device.name} updated.`);
+	},
+	/**
+	 * Handles deleting measuring device
+	 */
+	deleteMeasuringDevice: async (event) => {
+		const form = await superValidate(event, zod(deleteDeviceFormSchema));
+
+		if (!form.valid) return fail(400, { form });
+
+		try {
+			await db.delete(measuringDevices).where(eq(measuringDevices.id, form.data.deviceId));
+		} catch (error) {
+			// FIXME: check if the foreign constraint failed, it means there are live relations, in which case
+			// we should soft-delete instead
+			console.log(error);
+			if (error instanceof LibsqlError && error.code === 'SQLITE_CONSTRAINT') {
+				await db
+					.update(measuringDevices)
+					.set({ isDeleted: true })
+					.where(eq(measuringDevices.id, form.data.deviceId));
+			}
+			return;
+		}
+
+		return message(form, `Measuring device ${form.data.name} deleted.`);
 	}
 };

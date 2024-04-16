@@ -7,7 +7,7 @@ import { z } from 'zod';
 const energyTypeLabels = Object.values(labelsByEnergyType).map((x) => x.toLocaleLowerCase());
 
 /**
- * Form schema for updating a measuring device
+ * Form schema for creating a measuring device
  */
 export const addDeviceFormSchema = z.object({
 	occupantId: selectOccupantSchema.shape.id,
@@ -18,6 +18,7 @@ export const addDeviceFormSchema = z.object({
 		.trim()
 		.default(''),
 	energyType: z.enum(energyTypes, {
+		// FIXME: This doesn't really work for some reason
 		errorMap: () => ({
 			message: `Energy type has to be one of: ${get(disjunctionListFmt).format(energyTypeLabels)}`
 		})

@@ -3,7 +3,7 @@ import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings } from './building';
-import { booleanColumn, primaryIdColumn, type ID } from './common';
+import { booleanColumn, primaryIdColumn, softDeleteColumn, type ID } from './common';
 import { energyBills } from './energy-bill';
 import { measuringDevices } from './measuring-device';
 
@@ -12,6 +12,7 @@ import { measuringDevices } from './measuring-device';
 export const occupants = sqliteTable('occupants', {
 	id: primaryIdColumn,
 	name: text('name').notNull(),
+	isDeleted: softDeleteColumn,
 	squareMeters: integer('squareMeters').notNull(),
 	chargedUnmeasuredElectricity: booleanColumn('chargedUnmeasuredElectricity')
 		.notNull()
