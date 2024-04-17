@@ -1,5 +1,4 @@
 import {
-	energyBills,
 	insertMeasuringDeviceSchema,
 	labelsByEnergyType,
 	measuringDevices,
@@ -7,6 +6,7 @@ import {
 	selectOccupantSchema
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
+import { isFailedForeignKeyConstraint } from '$lib/server/db/helpers';
 import { error, fail, type Actions, type Load } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { message, superValidate } from 'sveltekit-superforms';
@@ -14,7 +14,6 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { createOccupantFormSchema } from '../create-edit-form-schema';
 import { deleteDeviceFormSchema } from './delete-device-form-schema';
 import { editDeviceFormSchema } from './edit-device-form-schema';
-import { LibsqlError } from '@libsql/client';
 
 export const load: Load = async ({ params }) => {
 	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
@@ -117,18 +116,17 @@ export const actions: Actions = {
 		if (!form.valid) return fail(400, { form });
 
 		try {
+			// Soft-deleting is the way to go, but let's first try hard delete to safe storage
 			await db.delete(measuringDevices).where(eq(measuringDevices.id, form.data.deviceId));
 		} catch (error) {
-			// FIXME: check if the foreign constraint failed, it means there are live relations, in which case
-			// we should soft-delete instead
 			console.log(error);
-			if (error instanceof LibsqlError && error.code === 'SQLITE_CONSTRAINT') {
+			// The device has live relations, so we soft-delete instead
+			if (isFailedForeignKeyConstraint(error)) {
 				await db
 					.update(measuringDevices)
 					.set({ isDeleted: true })
 					.where(eq(measuringDevices.id, form.data.deviceId));
 			}
-			return;
 		}
 
 		return message(form, `Measuring device ${form.data.name} deleted.`);

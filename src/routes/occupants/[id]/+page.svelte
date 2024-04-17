@@ -8,12 +8,12 @@
 	import Page from '$lib/components/ui/typography/page.svelte';
 	import { labelsByEnergyType } from '$lib/models/common';
 	import type { MeasuringDevice } from '$lib/models/measuring-device';
-	import { Cross1 as Cross1Icon } from 'svelte-radix';
+	import type { ButtonEventHandler } from 'bits-ui';
+	import { Trash as TrashIcon } from 'svelte-radix';
 	import AddDeviceForm from './add-device-form.svelte';
+	import DeleteDeviceForm from './delete-device-form.svelte';
 	import EditDeviceForm from './edit-device-form.svelte';
 	import EditForm from './edit-form.svelte';
-	import DeleteDeviceForm from './delete-device-form.svelte';
-	import type { ButtonEventHandler } from 'bits-ui';
 
 	export let data;
 
@@ -33,6 +33,7 @@
 	// Delete device dialog controls
 	let isDeleteDeviceDialogOpen = false;
 	const openDeleteDevice = (device: MeasuringDevice) => (event: ButtonEventHandler<MouseEvent>) => {
+		// Prevent the containing rows from capturing the event
 		event.stopPropagation();
 		selectedDevice = device;
 		isDeleteDeviceDialogOpen = true;
@@ -108,14 +109,14 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>{device.name}</Table.Cell>
-								<Table.Cell>
+								<Table.Cell title="Delete this device">
 									<Button
 										type="submit"
 										variant="destructive"
 										size="icon"
 										on:click={openDeleteDevice(device)}
 									>
-										<Cross1Icon class="w-4 h-4" />
+										<TrashIcon class="w-4 h-4" />
 									</Button>
 								</Table.Cell>
 							</Table.Row>
