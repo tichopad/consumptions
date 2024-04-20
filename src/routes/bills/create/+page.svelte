@@ -127,7 +127,7 @@
 									/>
 								</Popover.Content>
 							</Popover.Root>
-							<Form.Description>How long how looong</Form.Description>
+							<Form.Description>The time frame this bill applies to</Form.Description>
 							<Form.FieldErrors />
 							<input hidden {...attrs} value={$formData.dateRange.start} name="dateRange.start" />
 							<input hidden {...attrs} value={$formData.dateRange.end} name="dateRange.end" />
@@ -348,7 +348,11 @@
 												<Table.Row>
 													<Table.Cell class="font-medium">
 														<div class="flex items-center gap-1">
-															<EnergyTypeIcon class="w-4 h-4" energyType={device.energyType} />
+															<EnergyTypeIcon
+																class="w-4 h-4"
+																energyType={device.energyType}
+																withTooltip={false}
+															/>
 															<span>{labelsByEnergyType[device.energyType]}</span>
 														</div>
 													</Table.Cell>

@@ -172,13 +172,14 @@ async function calculateElectricityBills(
 			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc).toNumber(), 0);
 		const cost = new BigNumber(totalConsumption).times(unitCost).toNumber();
 		return {
-			startDate: form.dateRange.start,
+			billingPeriodId: billingPeriod.id,
+			costPerUnit: unitCost.toNumber(),
 			endDate: form.dateRange.end,
-			occupantId: occupant.id,
 			energyType: 'electricity',
-			totalCost: cost,
+			occupantId: occupant.id,
+			startDate: form.dateRange.start,
 			totalConsumption,
-			billingPeriodId: billingPeriod.id
+			totalCost: cost
 		};
 	});
 
@@ -199,12 +200,14 @@ async function calculateElectricityBills(
 	const unmeasuredBillsInserts = unmeasuredOccupants.map((occupant): EnergyBillInsert => {
 		const cost = new BigNumber(occupant.squareMeters).times(costPerSquareMeter).toNumber();
 		return {
-			startDate: form.dateRange.start,
+			billingPeriodId: billingPeriod.id,
+			billedArea: occupant.squareMeters,
+			costPerSquareMeter,
 			endDate: form.dateRange.end,
-			occupantId: occupant.id,
 			energyType: 'electricity',
-			totalCost: cost,
-			billingPeriodId: billingPeriod.id
+			occupantId: occupant.id,
+			startDate: form.dateRange.start,
+			totalCost: cost
 		};
 	});
 
@@ -214,13 +217,15 @@ async function calculateElectricityBills(
 	);
 
 	const buildingBill: EnergyBillInsert = {
-		startDate: form.dateRange.start,
-		endDate: form.dateRange.end,
+		billingPeriodId: billingPeriod.id,
 		buildingId,
+		costPerSquareMeter,
+		costPerUnit: unitCost.toNumber(),
+		endDate: form.dateRange.end,
 		energyType: 'electricity',
-		totalCost: form.electricityTotalCost,
+		startDate: form.dateRange.start,
 		totalConsumption: form.electricityTotalConsumption,
-		billingPeriodId: billingPeriod.id
+		totalCost: form.electricityTotalCost
 	};
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
 
@@ -277,13 +282,14 @@ async function calculateWaterBills(
 			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc).toNumber(), 0);
 		const cost = new BigNumber(totalConsumption).times(unitCost).toNumber();
 		return {
-			startDate: form.dateRange.start,
+			billingPeriodId: billingPeriod.id,
+			costPerUnit: unitCost.toNumber(),
 			endDate: form.dateRange.end,
-			occupantId: occupant.id,
 			energyType: 'water',
-			totalCost: cost,
+			occupantId: occupant.id,
+			startDate: form.dateRange.start,
 			totalConsumption,
-			billingPeriodId: billingPeriod.id
+			totalCost: cost
 		};
 	});
 
@@ -304,12 +310,14 @@ async function calculateWaterBills(
 	const unmeasuredBillsInserts = unmeasuredOccupants.map((occupant): EnergyBillInsert => {
 		const cost = new BigNumber(occupant.squareMeters).times(costPerSquareMeter).toNumber();
 		return {
-			startDate: form.dateRange.start,
+			billingPeriodId: billingPeriod.id,
+			billedArea: occupant.squareMeters,
+			costPerSquareMeter,
 			endDate: form.dateRange.end,
-			occupantId: occupant.id,
 			energyType: 'water',
-			totalCost: cost,
-			billingPeriodId: billingPeriod.id
+			occupantId: occupant.id,
+			startDate: form.dateRange.start,
+			totalCost: cost
 		};
 	});
 
@@ -319,13 +327,15 @@ async function calculateWaterBills(
 	);
 
 	const buildingBill: EnergyBillInsert = {
-		startDate: form.dateRange.start,
-		endDate: form.dateRange.end,
+		billingPeriodId: billingPeriod.id,
 		buildingId,
+		costPerSquareMeter,
+		costPerUnit: unitCost.toNumber(),
+		endDate: form.dateRange.end,
 		energyType: 'water',
-		totalCost: form.waterTotalCost,
+		startDate: form.dateRange.start,
 		totalConsumption: form.waterTotalConsumption,
-		billingPeriodId: billingPeriod.id
+		totalCost: form.waterTotalCost
 	};
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
 
@@ -386,14 +396,15 @@ async function calculateHeatingBills(
 		const fixedCost = unitFixedCost.multipliedBy(occupant.heatingFixedCostShare ?? 0).toNumber();
 		const totalCost = measuredCost.plus(fixedCost).toNumber();
 		return {
-			startDate: form.dateRange.start,
+			billingPeriodId: billingPeriod.id,
+			costPerUnit: unitCost.toNumber(),
 			endDate: form.dateRange.end,
-			occupantId: occupant.id,
 			energyType: 'heating',
-			totalCost,
 			fixedCost,
+			occupantId: occupant.id,
+			startDate: form.dateRange.start,
 			totalConsumption: totalConsumption.toNumber(),
-			billingPeriodId: billingPeriod.id
+			totalCost
 		};
 	});
 
@@ -419,13 +430,15 @@ async function calculateHeatingBills(
 		const fixedCost = unitFixedCost.multipliedBy(occupant.heatingFixedCostShare ?? 0).toNumber();
 		const totalCost = unmeasuredCost.plus(fixedCost).toNumber();
 		return {
-			startDate: form.dateRange.start,
+			billingPeriodId: billingPeriod.id,
+			billedArea: occupant.squareMeters,
+			costPerSquareMeter,
 			endDate: form.dateRange.end,
-			occupantId: occupant.id,
 			energyType: 'heating',
-			totalCost,
 			fixedCost,
-			billingPeriodId: billingPeriod.id
+			occupantId: occupant.id,
+			startDate: form.dateRange.start,
+			totalCost
 		};
 	});
 
@@ -435,14 +448,16 @@ async function calculateHeatingBills(
 	);
 
 	const buildingBill: EnergyBillInsert = {
-		startDate: form.dateRange.start,
-		endDate: form.dateRange.end,
-		buildingId,
-		energyType: 'heating',
-		totalCost: form.heatingTotalCost,
-		fixedCost: form.heatingTotalFixedCost,
 		billingPeriodId: billingPeriod.id,
-		totalConsumption: form.heatingTotalConsumption
+		buildingId,
+		costPerSquareMeter,
+		costPerUnit: unitCost.toNumber(),
+		endDate: form.dateRange.end,
+		energyType: 'heating',
+		fixedCost: form.heatingTotalFixedCost,
+		startDate: form.dateRange.start,
+		totalConsumption: form.heatingTotalConsumption,
+		totalCost: form.heatingTotalCost
 	};
 	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
 
