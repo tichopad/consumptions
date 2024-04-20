@@ -15,6 +15,20 @@
       "when": 1713384895382,
       "tag": "0001_jittery_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1713636392022,
+      "tag": "0002_jazzy_marrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1713637498949,
+      "tag": "0003_magical_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }

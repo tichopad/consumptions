@@ -45,10 +45,10 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head class="lg:w-2/4">Name</Table.Head>
+								<Table.Head class="lg:w-1/3">Name</Table.Head>
 								<Table.Head>Area</Table.Head>
 								<Table.Head>Charged based on area</Table.Head>
-								<Table.Head class=" flex gap-1 items-center">
+								<Table.Head class="flex gap-1 items-center">
 									<span>Fixed heating cost share</span>
 									<Tooltip.Root openDelay={500}>
 										<Tooltip.Trigger>
@@ -60,6 +60,7 @@
 										</Tooltip.Content>
 									</Tooltip.Root>
 								</Table.Head>
+								<Table.Head class="w-[100px]">Created at</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
@@ -96,6 +97,7 @@
 											<span class="text-muted-foreground">None</span>
 										{/if}
 									</Table.Cell>
+									<Table.Cell>{occupant.created.toLocaleDateString()}</Table.Cell>
 								</Table.Row>
 							{/each}
 						</Table.Body>

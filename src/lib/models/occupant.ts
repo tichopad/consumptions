@@ -3,41 +3,60 @@ import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings } from './building';
-import { booleanColumn, primaryIdColumn, softDeleteColumn, type ID } from './common';
+import {
+	booleanColumn,
+	metadataColumns,
+	primaryIdColumn,
+	softDeleteColumns,
+	type ID
+} from './common';
 import { energyBills } from './energy-bill';
 import { measuringDevices } from './measuring-device';
 
-// Table definition
+// -- Table definition --
 
+/**
+ * Occupant represents a single person or a company renting or owning an area within a building.
+ */
 export const occupants = sqliteTable('occupants', {
+	// Keys
 	id: primaryIdColumn,
+	// Metadata
+	...metadataColumns,
+	...softDeleteColumns,
+	// Basic properties
 	name: text('name').notNull(),
-	isDeleted: softDeleteColumn,
 	squareMeters: integer('squareMeters').notNull(),
+	// Are they charged their energy consumption based on their occupied area? (Usual with renters)
 	chargedUnmeasuredElectricity: booleanColumn('chargedUnmeasuredElectricity')
 		.notNull()
 		.default(false),
 	chargedUnmeasuredHeating: booleanColumn('chargedUnmeasuredHeating').notNull().default(false),
 	chargedUnmeasuredWater: booleanColumn('chargedUnmeasuredWater').notNull().default(false),
+	// Some occupants (usually owners) participate in the fixed portion of heating costs
 	heatingFixedCostShare: real('heatingFixedCostShare'),
+	// References
 	buildingId: text('buildingId')
 		.notNull()
 		.references(() => buildings.id)
 		.$type<ID>()
 });
 
-// Relations
+// -- Relations --
 
 export const occupantsRelations = relations(occupants, ({ one, many }) => ({
+	/** Is belongs to a building */
 	buildings: one(buildings, {
 		fields: [occupants.buildingId],
 		references: [buildings.id]
 	}),
+	/** It can have many measuring devices */
 	measuringDevices: many(measuringDevices),
+	/** It can have many energy consumption bills */
 	energyBills: many(energyBills)
 }));
 
-// Validation schemas
+// -- Validation schemas --
 
 export const selectOccupantSchema = createSelectSchema(occupants, {
 	id: (schema) => schema.id.brand<'ID'>(),
@@ -55,7 +74,7 @@ export const insertOccupantSchema = createInsertSchema(occupants, {
 	squareMeters: z.coerce.number()
 });
 
-// Types
+// -- Helper types --
 
 export type Occupant = typeof occupants.$inferSelect;
 export type OccupantInsert = typeof occupants.$inferInsert;

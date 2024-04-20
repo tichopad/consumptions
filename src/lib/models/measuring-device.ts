@@ -1,34 +1,51 @@
 import { relations } from 'drizzle-orm';
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { energyTypes, primaryIdColumn, softDeleteColumn, type ID } from './common';
+import {
+	energyTypes,
+	metadataColumns,
+	primaryIdColumn,
+	softDeleteColumns,
+	type ID
+} from './common';
 import { consumptionRecords } from './consumption-record';
 import { occupants } from './occupant';
 
-// Table definition
+// -- Table definition --
 
+/**
+ * Measuring device represents a real-world device used for measuring of energy
+ * consumption.
+ */
 export const measuringDevices = sqliteTable('measuringDevices', {
+	// Keys
 	id: primaryIdColumn,
+	// Metadata
+	...metadataColumns,
+	...softDeleteColumns,
+	// Basic properties
 	name: text('name').notNull(),
-	isDeleted: softDeleteColumn,
 	energyType: text('energyType', { enum: energyTypes }).notNull(),
+	// References
 	occupantId: text('occupantId')
 		.notNull()
 		.references(() => occupants.id)
 		.$type<ID>()
 });
 
-// Relations
+// -- Relations --
 
 export const measuringDevicesRelations = relations(measuringDevices, ({ one, many }) => ({
+	/** It belongs to an occupant */
 	occupants: one(occupants, {
 		fields: [measuringDevices.occupantId],
 		references: [occupants.id]
 	}),
+	/** It can contain many consumption records (containers for discrete measurements) */
 	consumptionRecords: many(consumptionRecords)
 }));
 
-// Validation schemas
+// -- Validation schemas --
 
 export const selectMeasuringDeviceSchema = createSelectSchema(measuringDevices, {
 	id: (schema) => schema.id.brand<'ID'>(),
@@ -41,7 +58,7 @@ export const insertMeasuringDeviceSchema = createInsertSchema(measuringDevices, 
 	name: (schema) => schema.name.trim().min(1)
 });
 
-// Types
+// -- Helper types --
 
 export type MeasuringDevice = typeof measuringDevices.$inferSelect;
 export type MeasuringDeviceInsert = typeof measuringDevices.$inferInsert;

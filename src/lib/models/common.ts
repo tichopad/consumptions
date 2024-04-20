@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { integer, text } from 'drizzle-orm/sqlite-core';
 import { customAlphabet } from 'nanoid';
 import type { z } from 'zod';
@@ -10,7 +11,7 @@ export type ID = string & z.BRAND<'ID'>;
 // Custom ID generator alphabet; 11 characters long and URL-safe
 const createId = customAlphabet(
 	'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-	11
+	16
 );
 
 /** Creates unique ID */
@@ -44,5 +45,19 @@ export const primaryIdColumn = text('id').primaryKey().notNull().$defaultFn(id).
 /** Defines a boolean column in a Drizzle table definition for SQLite */
 export const booleanColumn = (columnName: string) => integer(columnName, { mode: 'boolean' });
 
-/** Defines a soft-delete column in Drizzle table definition for SQLite */
-export const softDeleteColumn = booleanColumn('isDeleted').notNull().default(false);
+/** Defines a set of columns representing basic metadata */
+export const metadataColumns = {
+	created: integer('created', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(strftime('%s','now'))`),
+	updated: integer('updated', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(strftime('%s','now'))`)
+		.$onUpdate(() => new Date())
+};
+
+/** Defines a set of columns representing the ability for a record to be soft-deleted */
+export const softDeleteColumns = {
+	isDeleted: booleanColumn('isDeleted').notNull().default(false),
+	deleted: integer('deleted', { mode: 'timestamp' })
+};

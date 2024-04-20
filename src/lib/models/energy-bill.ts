@@ -4,7 +4,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { billingPeriods } from './billing-period';
 import { buildings } from './building';
-import { energyTypes, primaryIdColumn, type ID } from './common';
+import { energyTypes, metadataColumns, primaryIdColumn, type ID } from './common';
 import { occupants } from './occupant';
 
 // -- Table definition --
@@ -18,6 +18,8 @@ import { occupants } from './occupant';
 export const energyBills = sqliteTable('energyBills', {
 	// Keys
 	id: primaryIdColumn,
+	// Meta
+	...metadataColumns,
 	// Costs
 	totalCost: real('totalCost').notNull(),
 	fixedCost: real('fixedCost'), // Fixed cost only makes sense for heating

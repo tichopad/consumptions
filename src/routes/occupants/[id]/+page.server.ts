@@ -124,7 +124,7 @@ export const actions: Actions = {
 			if (isFailedForeignKeyConstraint(error)) {
 				await db
 					.update(measuringDevices)
-					.set({ isDeleted: true })
+					.set({ isDeleted: true, deleted: new Date() })
 					.where(eq(measuringDevices.id, form.data.deviceId));
 			}
 		}
