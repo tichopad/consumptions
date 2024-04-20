@@ -13,7 +13,6 @@
 
 	export let data;
 
-	// FIXME: use shallow routing?
 	let createDialogOpen = false;
 
 	const isNotChargedForUnmeasuredEnergy = (occupant: Occupant) => {

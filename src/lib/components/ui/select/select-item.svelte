@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/components/ui/utils';
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import { Check } from 'radix-icons-svelte';
+	import { Check } from 'svelte-radix';
 
 	type $$Props = SelectPrimitive.ItemProps;
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from 'bits-ui';
-	import { CaretSort } from 'radix-icons-svelte';
+	import { CaretSort } from 'svelte-radix';
 	import { cn } from '$lib/components/ui/utils';
 
 	type $$Props = SelectPrimitive.TriggerProps;

@@ -79,6 +79,8 @@ export const load: Load = async ({ params }) => {
 		}
 	}
 
+	// TODO: Maybe consumption actually lives on the energy bill (would it make sense?)
+
 	return {
 		billingPeriod,
 		buildingWithBills,

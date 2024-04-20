@@ -9,8 +9,10 @@ import { createSelectSchema } from 'drizzle-zod';
 
 export const billingPeriods = sqliteTable('billingPeriods', {
 	id: primaryIdColumn,
+	// Date
 	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
+	// References
 	buildingId: text('buildingId')
 		.notNull()
 		.references(() => buildings.id)

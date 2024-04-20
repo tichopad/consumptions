@@ -11,11 +11,16 @@ import { billingPeriods } from './billing-period';
 
 export const energyBills = sqliteTable('energyBills', {
 	id: primaryIdColumn,
-	energyType: text('energyType', { enum: energyTypes }).notNull(),
+	// Cost
 	totalCost: real('totalCost').notNull(),
 	fixedCost: real('fixedCost'),
+	// Consumption
+	energyType: text('energyType', { enum: energyTypes }).notNull(),
+	totalConsumption: real('consumption'), // Not required because of occupants without measuring devices
+	// Date
 	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),
+	// References
 	buildingId: text('buildingId')
 		.references(() => buildings.id)
 		.$type<ID>(),
@@ -31,14 +36,17 @@ export const energyBills = sqliteTable('energyBills', {
 // Relations
 
 export const energyBillsRelations = relations(energyBills, ({ one }) => ({
+	/** It exists in the context of a building */
 	buildings: one(buildings, {
 		fields: [energyBills.buildingId],
 		references: [buildings.id]
 	}),
+	/** It belongs to an occupant */
 	occupants: one(occupants, {
 		fields: [energyBills.occupantId],
 		references: [occupants.id]
 	}),
+	/** It is created in the context of a billing period */
 	billingPeriods: one(billingPeriods, {
 		fields: [energyBills.billingPeriodId],
 		references: [billingPeriods.id]

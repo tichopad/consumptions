@@ -7,7 +7,7 @@
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import { currencyFmt, dateFmt, numberFmt } from '$lib/i18n/stores';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
-	import { Person as PersonIcon } from 'radix-icons-svelte';
+	import { Person as PersonIcon } from 'svelte-radix';
 
 	export let data;
 
@@ -54,8 +54,10 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>
-									{$numberFmt.format(42069)}
-									{unitsByEnergyType['electricity']}
+									{#if data.electricityBill.totalConsumption !== null}
+										{$numberFmt.format(data.electricityBill.totalConsumption)}
+										{unitsByEnergyType['electricity']}
+									{/if}
 								</Table.Cell>
 								<Table.Cell>
 									{$currencyFmt.format(data.electricityBill.totalCost)}
@@ -72,8 +74,10 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>
-									{$numberFmt.format(42069)}
-									{unitsByEnergyType['water']}
+									{#if data.waterBill.totalConsumption !== null}
+										{$numberFmt.format(data.waterBill.totalConsumption)}
+										{unitsByEnergyType['water']}
+									{/if}
 								</Table.Cell>
 								<Table.Cell>
 									{$currencyFmt.format(data.waterBill.totalCost)}
@@ -90,8 +94,10 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>
-									{$numberFmt.format(42069)}
-									{unitsByEnergyType['heating']}
+									{#if data.heatingBill.totalConsumption !== null}
+										{$numberFmt.format(data.heatingBill.totalConsumption)}
+										{unitsByEnergyType['heating']}
+									{/if}
 								</Table.Cell>
 								<Table.Cell>
 									{$currencyFmt.format(data.heatingBill.totalCost)}
@@ -145,7 +151,12 @@
 													</div>
 												</Table.Cell>
 												<!-- FIXME: get consumption -->
-												<Table.Cell>{$numberFmt.format(69420)}</Table.Cell>
+												<Table.Cell>
+													{#if bill.totalConsumption !== null}
+														{$numberFmt.format(bill.totalConsumption)}
+														{unitsByEnergyType[bill.energyType]}
+													{/if}
+												</Table.Cell>
 												<Table.Cell>
 													{$currencyFmt.format(bill.totalCost)}
 												</Table.Cell>
@@ -156,7 +167,7 @@
 												</Table.Cell>
 											</Table.Row>
 										{/each}
-										<Table.Row class="font-medium bg-muted">
+										<Table.Row class="font-medium">
 											<Table.Cell></Table.Cell>
 											<Table.Cell />
 											<Table.Cell>{$currencyFmt.format(totalCost)}</Table.Cell>

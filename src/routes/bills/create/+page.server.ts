@@ -177,6 +177,7 @@ async function calculateElectricityBills(
 			occupantId: occupant.id,
 			energyType: 'electricity',
 			totalCost: cost,
+			totalConsumption,
 			billingPeriodId: billingPeriod.id
 		};
 	});
@@ -212,14 +213,16 @@ async function calculateElectricityBills(
 		new BigNumber(0)
 	);
 
-	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
+	const buildingBill: EnergyBillInsert = {
 		startDate: form.dateRange.start,
 		endDate: form.dateRange.end,
 		buildingId,
 		energyType: 'electricity',
 		totalCost: form.electricityTotalCost,
+		totalConsumption: form.electricityTotalConsumption,
 		billingPeriodId: billingPeriod.id
-	});
+	};
+	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
 
 	let bills: EnergyBill[] = [];
 
@@ -279,6 +282,7 @@ async function calculateWaterBills(
 			occupantId: occupant.id,
 			energyType: 'water',
 			totalCost: cost,
+			totalConsumption,
 			billingPeriodId: billingPeriod.id
 		};
 	});
@@ -314,14 +318,16 @@ async function calculateWaterBills(
 		new BigNumber(0)
 	);
 
-	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
+	const buildingBill: EnergyBillInsert = {
 		startDate: form.dateRange.start,
 		endDate: form.dateRange.end,
 		buildingId,
 		energyType: 'water',
 		totalCost: form.waterTotalCost,
+		totalConsumption: form.waterTotalConsumption,
 		billingPeriodId: billingPeriod.id
-	});
+	};
+	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
 
 	let bills: EnergyBill[] = [];
 
@@ -371,10 +377,10 @@ async function calculateHeatingBills(
 	);
 	// Calculate the total cost of heating for each measured occupant based on the actual usage
 	const measuredBillsInserts = measuredOccupants.map((occupant): EnergyBillInsert => {
-		const measuredCost = occupant.measuringDevices
+		const totalConsumption = occupant.measuringDevices
 			.filter((device) => device.energyType === 'heating')
-			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc), new BigNumber(0))
-			.multipliedBy(unitCost);
+			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc), new BigNumber(0));
+		const measuredCost = totalConsumption.multipliedBy(unitCost);
 		const totalFixedCost = new BigNumber(form.heatingTotalFixedCost ?? 0);
 		const unitFixedCost = totalFixedCost.dividedBy(781);
 		const fixedCost = unitFixedCost.multipliedBy(occupant.heatingFixedCostShare ?? 0).toNumber();
@@ -386,6 +392,7 @@ async function calculateHeatingBills(
 			energyType: 'heating',
 			totalCost,
 			fixedCost,
+			totalConsumption: totalConsumption.toNumber(),
 			billingPeriodId: billingPeriod.id
 		};
 	});
@@ -427,15 +434,17 @@ async function calculateHeatingBills(
 		new BigNumber(0)
 	);
 
-	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat({
+	const buildingBill: EnergyBillInsert = {
 		startDate: form.dateRange.start,
 		endDate: form.dateRange.end,
 		buildingId,
 		energyType: 'heating',
 		totalCost: form.heatingTotalCost,
 		fixedCost: form.heatingTotalFixedCost,
-		billingPeriodId: billingPeriod.id
-	});
+		billingPeriodId: billingPeriod.id,
+		totalConsumption: form.heatingTotalConsumption
+	};
+	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
 
 	let bills: EnergyBill[] = [];
 
