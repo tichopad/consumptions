@@ -6,12 +6,14 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
-	import { numberFmt } from '$lib/i18n/stores';
+	import { createDateFormatter, numberFmt } from '$lib/i18n/stores';
 	import type { Occupant } from '$lib/models/occupant';
 	import { QuestionMarkCircled as QuestionMarkCircledIcon } from 'svelte-radix';
 	import CreateForm from './create-form.svelte';
 
 	export let data;
+
+	const dateFmt = createDateFormatter({ dateStyle: 'medium', timeStyle: undefined });
 
 	let createDialogOpen = false;
 
@@ -97,7 +99,7 @@
 											<span class="text-muted-foreground">None</span>
 										{/if}
 									</Table.Cell>
-									<Table.Cell>{occupant.created.toLocaleDateString()}</Table.Cell>
+									<Table.Cell>{$dateFmt.format(occupant.created)}</Table.Cell>
 								</Table.Row>
 							{/each}
 						</Table.Body>

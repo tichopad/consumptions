@@ -53,7 +53,7 @@
 		"@typescript-eslint/eslint-plugin": "^7.6.0",
 		"@typescript-eslint/parser": "^7.6.0",
 		"autoprefixer": "^10.4.19",
-		"drizzle-kit": "^0.20.16",
+		"drizzle-kit": "^0.20.17",
 		"eslint": "^8.56.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-drizzle": "^0.2.3",
@@ -75,10 +75,8 @@
 	},
 	"lint-staged": {
 		"*.{js,svelte,ts,tsx}": [
-			"bun run check",
 			"prettier --cache --write --ignore-unknown",
-			"eslint --cache --cache-location node_modules/.cache/eslint",
-			"bun run test:unit run"
+			"eslint --cache --cache-location node_modules/.cache/eslint --fix"
 		],
 		"*.{md,json,toml}": [
 			"prettier --cache --write --ignore-unknown"

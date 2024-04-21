@@ -2,10 +2,12 @@
 	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
+	import DateMetadata from '$lib/components/ui/date-metadata.svelte';
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
+	import { createDateFormatter } from '$lib/i18n/stores';
 	import { labelsByEnergyType } from '$lib/models/common';
 	import type { MeasuringDevice } from '$lib/models/measuring-device';
 	import type { ButtonEventHandler } from 'bits-ui';
@@ -16,6 +18,9 @@
 	import EditForm from './edit-form.svelte';
 
 	export let data;
+
+	// Date formatting
+	const dateFmt = createDateFormatter({ dateStyle: 'short', timeStyle: 'short' });
 
 	// Add device dialog controls
 	let isAddDeviceDialogOpen = false;
@@ -64,24 +69,7 @@
 		<Header2>Occupant</Header2>
 		<Header1>{data.occupant.name}</Header1>
 	</section>
-	<Card.Root>
-		<Card.Content class="py-2 px-4">
-			<Table.Root>
-				<Table.Header>
-					<Table.Row>
-						<Table.Head>Created at</Table.Head>
-						<Table.Head>Last updated at</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					<Table.Row>
-						<Table.Cell>{data.occupant.created.toLocaleString()}</Table.Cell>
-						<Table.Cell>{data.occupant.updated.toLocaleString()}</Table.Cell>
-					</Table.Row>
-				</Table.Body>
-			</Table.Root>
-		</Card.Content>
-	</Card.Root>
+	<DateMetadata item={data.occupant} />
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>About</Card.Title>
@@ -129,8 +117,8 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>{device.name}</Table.Cell>
-								<Table.Cell>{device.created.toLocaleString()}</Table.Cell>
-								<Table.Cell>{device.updated.toLocaleString()}</Table.Cell>
+								<Table.Cell>{$dateFmt.format(device.created)}</Table.Cell>
+								<Table.Cell>{$dateFmt.format(device.updated)}</Table.Cell>
 								<Table.Cell title="Delete this device">
 									<Button
 										type="submit"

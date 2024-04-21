@@ -22,6 +22,19 @@ export const currencyFmt = derived(locale, ($l) => {
 	});
 });
 
+/** Creates date formatter store */
+export const createDateFormatter = (options?: Intl.DateTimeFormatOptions) => {
+	const defaultOptions: Intl.DateTimeFormatOptions = {
+		dateStyle: 'full',
+		timeStyle: 'short'
+	};
+	const actualOptions = options ? { ...defaultOptions, ...options } : defaultOptions;
+
+	return derived(locale, ($l) => {
+		return new Intl.DateTimeFormat($l, actualOptions);
+	});
+};
+
 /** Conjunction list formatter */
 export const conjunctionListFmt = derived(locale, ($l) => {
 	return new Intl.ListFormat($l, {
@@ -30,7 +43,7 @@ export const conjunctionListFmt = derived(locale, ($l) => {
 	});
 });
 
-/** Conjunction list formatter */
+/** Disjunction list formatter */
 export const disjunctionListFmt = derived(locale, ($l) => {
 	return new Intl.ListFormat($l, {
 		style: 'long',
