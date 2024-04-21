@@ -14,7 +14,6 @@
 	import DeleteDeviceForm from './delete-device-form.svelte';
 	import EditDeviceForm from './edit-device-form.svelte';
 	import EditForm from './edit-form.svelte';
-	import { occupants } from '$lib/models/occupant';
 
 	export let data;
 
@@ -65,22 +64,6 @@
 		<Header2>Occupant</Header2>
 		<Header1>{data.occupant.name}</Header1>
 	</section>
-	<!-- <Card.Root>
-		<Card.Content class="py-2 px-4">
-			<Table.Root>
-				<Table.Body>
-					<Table.Row>
-						<Table.Head class="w-[125px]">Created at</Table.Head>
-						<Table.Cell>{data.occupant.created.toLocaleString()}</Table.Cell>
-					</Table.Row>
-					<Table.Row>
-						<Table.Head class="w-[125px]">Last updated at</Table.Head>
-						<Table.Cell>{data.occupant.updated.toLocaleString()}</Table.Cell>
-					</Table.Row>
-				</Table.Body>
-			</Table.Root>
-		</Card.Content>
-	</Card.Root> -->
 	<Card.Root>
 		<Card.Content class="py-2 px-4">
 			<Table.Root>

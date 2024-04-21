@@ -59,7 +59,11 @@
 		}
 	}
 
-	const isChargedForUnmeasuredEnergy = (occupant: Occupant): boolean => {
+	type OccupantsUnmeasuredInfo = Pick<
+		Occupant,
+		'chargedUnmeasuredElectricity' | 'chargedUnmeasuredHeating' | 'chargedUnmeasuredWater'
+	>;
+	const isChargedForUnmeasuredEnergy = (occupant: OccupantsUnmeasuredInfo): boolean => {
 		return (
 			occupant.chargedUnmeasuredElectricity ||
 			occupant.chargedUnmeasuredHeating ||
@@ -67,7 +71,7 @@
 		);
 	};
 
-	const formattedListOfUnmeasuredEnergyTypes = (occupant: Occupant): string => {
+	const formattedListOfUnmeasuredEnergyTypes = (occupant: OccupantsUnmeasuredInfo): string => {
 		const energyTypes: string[] = [];
 		if (occupant.chargedUnmeasuredElectricity) energyTypes.push('electricity');
 		if (occupant.chargedUnmeasuredHeating) energyTypes.push('heating');
