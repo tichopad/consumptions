@@ -2,7 +2,7 @@ import type { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
 	webServer: {
-		command: 'bun run build && bun run preview',
+		command: 'bun run preview',
 		port: 8788
 	},
 	testDir: 'tests',
