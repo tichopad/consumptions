@@ -11,7 +11,7 @@ describe('isEmptyStringTrimmed', () => {
 		expect(result).toBe(true);
 	});
 	it('returns true given string with newlines', () => {
-		const result = isEmptyStringTrimmed('\n\n  ');
+		const result = isEmptyStringTrimmed('\n \n ');
 		expect(result).toBe(true);
 	});
 	it('returns false given non-empty string', () => {
