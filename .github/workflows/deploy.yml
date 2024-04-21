@@ -56,6 +56,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           projectName: consumptions
-          directory: '/.svelte-kit/cloudflare'
+          directory: '.svelte-kit/cloudflare'
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           wranglerVersion: '3'
