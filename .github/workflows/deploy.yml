@@ -41,11 +41,10 @@ jobs:
         run: |
           PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' package.json)
           echo "Playwright version: $PLAYWRIGHT_VERSION"
-          exit 1
           echo "version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
 
       - name: 🎭 Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
