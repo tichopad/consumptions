@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - 'main'
+    paths-ignore:
+      - '.husky/**'
+      - '**.md'
+      - '.env.example'
 
 concurrency:
   cancel-in-progress: true
@@ -44,7 +48,7 @@ jobs:
           echo "version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
 
       - name: 🎭 Cache Playwright browsers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
