@@ -5,6 +5,10 @@ on:
     branches:
       - 'main'
 
+concurrency:
+  cancel-in-progress: true
+  group: cloudflare-pages-deployment
+
 jobs:
   publish:
     name: Publish to Cloudflare Pages
@@ -36,6 +40,8 @@ jobs:
         id: playwright-version
         run: |
           PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' package.json)
+          echo "Playwright version: $PLAYWRIGHT_VERSION"
+          exit 1
           echo "version=$PLAYWRIGHT_VERSION" >> $GITHUB_OUTPUT
 
       - name: 🎭 Cache Playwright browsers
