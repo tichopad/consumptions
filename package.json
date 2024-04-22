@@ -19,7 +19,7 @@
 		"prepare": "husky",
 		"preview": "bun run build && wrangler pages dev .svelte-kit/cloudflare",
 		"start": "turbo run db:start & sleep 1 && turbo run dev",
-		"test": "npm run test:integration && npm run test:unit",
+		"test": "npm run test:unit && npm run test:integration",
 		"test:integration": "playwright test",
 		"test:unit": "vitest"
 	},
