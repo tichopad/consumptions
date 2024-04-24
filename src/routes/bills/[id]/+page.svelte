@@ -2,6 +2,7 @@
 	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
 	import * as Accordion from '$lib/components/ui/accordion';
 	import * as Card from '$lib/components/ui/card';
+	import DateMetadata from '$lib/components/ui/date-metadata.svelte';
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
@@ -35,6 +36,7 @@
 			{$dateFmt.format(data.billingPeriod.endDate)}
 		</Header1>
 	</section>
+	<DateMetadata item={data.billingPeriod} />
 	{#if data.building !== null}
 		<Card.Root>
 			<Card.Header>

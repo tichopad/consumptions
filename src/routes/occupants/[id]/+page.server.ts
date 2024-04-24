@@ -76,7 +76,14 @@ export const actions: Actions = {
 
 		if (!form.valid) return fail(400, { form });
 
-		const [newDevice] = await db.insert(measuringDevices).values(form.data).returning();
+		const insertDevice = db.insert(measuringDevices).values(form.data).returning();
+		const updateOccupant = db
+			.update(occupants)
+			.set({ updated: new Date() })
+			.where(eq(occupants.id, form.data.occupantId));
+
+		const [insertDeviceResult] = await db.batch([insertDevice, updateOccupant]);
+		const [newDevice] = insertDeviceResult;
 
 		if (newDevice === undefined) {
 			return fail(500, { form, message: 'Failed to insert device to database' });
