@@ -17,7 +17,7 @@
 		"format": "prettier --cache --ignore-unknown --write .",
 		"lint": "prettier --cache --ignore-unknown --check . && eslint --cache --cache-location node_modules/.cache/eslint .",
 		"prepare": "husky",
-		"preview": "bun run build && wrangler pages dev .svelte-kit/cloudflare",
+		"preview": "wrangler pages dev .svelte-kit/cloudflare",
 		"start": "turbo run db:start & sleep 1 && turbo run dev",
 		"test": "npm run test:unit && npm run test:integration",
 		"test:integration": "playwright test",
