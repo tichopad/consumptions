@@ -122,17 +122,40 @@ export const actions: Actions = {
 
 		if (!form.valid) return fail(400, { form });
 
+		// FIXME: Potentially unnecessary database call - refactor later
+		const device = await db.query.measuringDevices.findFirst({
+			where: eq(measuringDevices.id, form.data.deviceId)
+		});
+
+		if (device === undefined) {
+			return fail(404, { form, message: 'Device not found' });
+		}
+
+		// Occupant update operation that happens after the device is removed
+		// I want to make sure the occupant is not updated unless the device
+		// got deleted
+		const touchOccupant = () => {
+			return db
+				.update(occupants)
+				.set({ updated: new Date() })
+				.where(eq(occupants.id, device.occupantId));
+		};
+
 		try {
 			// Soft-deleting is the way to go, but let's first try hard delete to safe storage
-			await db.delete(measuringDevices).where(eq(measuringDevices.id, form.data.deviceId));
+			const deleteDevice = db
+				.delete(measuringDevices)
+				.where(eq(measuringDevices.id, form.data.deviceId));
+			await db.batch([deleteDevice, touchOccupant()]);
 		} catch (error) {
 			console.log(error);
 			// The device has live relations, so we soft-delete instead
 			if (isFailedForeignKeyConstraint(error)) {
-				await db
+				const softDeleteDevice = db
 					.update(measuringDevices)
 					.set({ isDeleted: true, deleted: new Date() })
 					.where(eq(measuringDevices.id, form.data.deviceId));
+				await db.batch([softDeleteDevice, touchOccupant()]);
 			}
 		}
 
