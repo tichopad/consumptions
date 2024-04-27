@@ -32,6 +32,7 @@
 		"drizzle-orm": "^0.30.8",
 		"drizzle-zod": "^0.5.1",
 		"formsnap": "^1.0.0",
+		"iterator-helpers-polyfill": "^3.0.1",
 		"mode-watcher": "^0.3.0",
 		"nanoid": "^5.0.7",
 		"svelte-radix": "^1.1.0",

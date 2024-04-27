@@ -41,7 +41,7 @@
 			<Card.Content class="pt-6">
 				{#if data.occupants.length === 0}
 					<p class="text-muted-foreground">
-						No bills yet. Press <i>Create</i> to add the first one.
+						No occupants yet. Press <i>Create</i> to add the first one.
 					</p>
 				{:else}
 					<Table.Root>

@@ -69,7 +69,7 @@
 		<Header2>Occupant</Header2>
 		<Header1>{data.occupant.name}</Header1>
 	</section>
-	<DateMetadata item={data.occupant} />
+	<DateMetadata created={data.occupant.created} updated={data.occupant.updated} />
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>About</Card.Title>

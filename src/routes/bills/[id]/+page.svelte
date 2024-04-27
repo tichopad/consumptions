@@ -36,7 +36,8 @@
 			{$dateFmt.format(data.billingPeriod.endDate)}
 		</Header1>
 	</section>
-	<DateMetadata item={data.billingPeriod} />
+	<!-- FIXME: showing updated timestamp for non-updateable entities doesn't make sense -->
+	<DateMetadata created={data.billingPeriod.created} />
 	{#if data.building !== null}
 		<Card.Root>
 			<Card.Header>

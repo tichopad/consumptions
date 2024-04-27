@@ -5,8 +5,23 @@
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import { currencyFmt, dateFmt } from '$lib/i18n/stores';
+	import type { EnergyType } from '$lib/models/common.js';
 
 	export let data;
+
+	// FIXME: there's a better way to get this server-side
+	type LoadedBillingPeriod = (typeof data)['allBillingPeriods'][number];
+	const getTotalCost = (
+		billingPeriod: LoadedBillingPeriod,
+		energyType: EnergyType
+	): number | null => {
+		for (const bill of billingPeriod.energyBills) {
+			if (bill.buildingId !== null && bill.energyType === energyType) {
+				return bill.totalCost;
+			}
+		}
+		return null;
+	};
 </script>
 
 <div class="bg-stone-50 flex justify-center items-stretch">
@@ -38,7 +53,6 @@
 						<!-- Body -->
 						<Table.Body>
 							{#each data.allBillingPeriods as billingPeriod (billingPeriod.id)}
-								{@const totalCosts = data.totalCosts.get(billingPeriod.id)}
 								<Table.Row
 									class="cursor-pointer"
 									on:click={() => goto(`/bills/${billingPeriod.id}`)}
@@ -50,18 +64,21 @@
 										{$dateFmt.format(billingPeriod.endDate)}
 									</Table.Cell>
 									<Table.Cell>
-										{#if totalCosts !== undefined}
-											{$currencyFmt.format(totalCosts.electricity)}
+										{@const totalElectricity = getTotalCost(billingPeriod, 'electricity')}
+										{#if totalElectricity !== null}
+											{$currencyFmt.format(totalElectricity)}
 										{/if}
 									</Table.Cell>
 									<Table.Cell>
-										{#if totalCosts !== undefined}
-											{$currencyFmt.format(totalCosts.heating)}
+										{@const totalWater = getTotalCost(billingPeriod, 'water')}
+										{#if totalWater !== null}
+											{$currencyFmt.format(totalWater)}
 										{/if}
 									</Table.Cell>
 									<Table.Cell>
-										{#if totalCosts !== undefined}
-											{$currencyFmt.format(totalCosts.water)}
+										{@const totalHeating = getTotalCost(billingPeriod, 'heating')}
+										{#if totalHeating !== null}
+											{$currencyFmt.format(totalHeating)}
 										{/if}
 									</Table.Cell>
 								</Table.Row>
