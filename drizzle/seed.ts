@@ -28,14 +28,16 @@ const db = drizzle(createClient({ url: env.DATABASE_URL }));
 const [building1] = await db.insert(buildings).values(building()).returning();
 console.log('Inserted building:', building.name);
 
-const [owner1, owner2] = await db
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const [renter1, renter2, renter3, owner1, owner2] = await db
 	.insert(occupants)
 	.values([
 		occupant(building1.id, true, { name: 'Renter 1', squareMeters: 20 }),
 		occupant(building1.id, true, { name: 'Renter 2', squareMeters: 10 }),
 		occupant(building1.id, true, { name: 'Renter 3', squareMeters: 50 }),
 		occupant(building1.id, false, { name: 'Owner 1', heatingFixedCostShare: null }),
-		occupant(building1.id, false, { name: 'Owner 2', heatingFixedCostShare: 10 })
+		occupant(building1.id, false, { name: 'Owner 2', heatingFixedCostShare: 10 }),
+		occupant(building1.id, false, { name: 'Oliera', heatingFixedCostShare: 771 })
 	])
 	.returning();
 

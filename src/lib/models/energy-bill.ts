@@ -23,6 +23,7 @@ export const energyBills = sqliteTable('energyBills', {
 	// Costs
 	totalCost: real('totalCost').notNull(),
 	fixedCost: real('fixedCost'), // Fixed cost only makes sense for heating
+	measuredCost: real('measuredCost'), // Cost of measured consumption
 	costPerUnit: real('costPerUnit'), // Cost per unit of energy for measured consumptions
 	costPerSquareMeter: real('costPerSquareMeter'), // Cost per squared meter for unmeasured consumptions
 	// Consumption & type

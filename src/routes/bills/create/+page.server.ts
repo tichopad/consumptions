@@ -430,6 +430,7 @@ async function calculateHeatingBills(
 			endDate: form.dateRange.end,
 			energyType: 'heating',
 			fixedCost,
+			measuredCost: measuredCost.toNumber(),
 			occupantId: occupant.id,
 			startDate: form.dateRange.start,
 			totalConsumption: totalConsumption.toNumber(),
@@ -438,7 +439,10 @@ async function calculateHeatingBills(
 	});
 	console.groupEnd();
 
-	const totalMeasuredCost = measuredBillsInserts.reduce((acc, bill) => acc + bill.totalCost, 0);
+	const totalMeasuredCost = measuredBillsInserts.reduce(
+		(acc, bill) => acc + (bill.measuredCost ?? 0),
+		0
+	);
 
 	console.log('-- Total measured cost --', totalMeasuredCost);
 
@@ -459,12 +463,11 @@ async function calculateHeatingBills(
 
 	console.log('-- Unmeasured area --', totalUnmeasuredArea);
 
-	// FIXME: fixed cost has to be subtracted from total cost
+	console.log('-- Form total fixed cost --', form.heatingTotalFixedCost);
+
 	const remainingCost = new BigNumber(form.heatingTotalCost)
 		.minus(totalMeasuredCost)
-		.minus(form.heatingTotalFixedCost ?? 0); // this is probably not right
-
-	// TODO: no, the above is not right, because I'm subtracting the fixed price from the total price 2x
+		.minus(form.heatingTotalFixedCost ?? 0);
 
 	console.log('-- Remaining cost --', remainingCost);
 
