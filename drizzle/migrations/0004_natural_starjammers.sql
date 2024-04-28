@@ -1,0 +1,1 @@
+ALTER TABLE energyBills ADD `measuredCost` real;
