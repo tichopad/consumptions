@@ -1,3 +1,4 @@
+import type { DateRange } from '$lib/common-types';
 import type { EnergyType, ID } from '$lib/models/common';
 import type { ConsumptionRecordInsert } from '$lib/models/consumption-record';
 import type { EnergyBillInsert } from '$lib/models/energy-bill';
@@ -6,17 +7,13 @@ import type { Occupant } from '$lib/models/occupant';
 import { sumPreciseBy } from '$lib/utils';
 import BigNumber from 'bignumber.js';
 
-type MeasuringDeviceBillRecord = Pick<MeasuringDevice, 'id' | 'name' | 'energyType'> & {
+export type MeasuringDeviceBillRecord = Pick<MeasuringDevice, 'id' | 'name' | 'energyType'> & {
 	consumption?: number;
 };
-type DateRange = {
-	start: Date;
-	end: Date;
-};
-type OccupantWithMeasuringDevices = Occupant & {
+export type OccupantWithMeasuringDevices = Occupant & {
 	measuringDevices: MeasuringDeviceBillRecord[];
 };
-type CalculateElectricityBillsInput = {
+export type CalculateElectricityBillsInput = {
 	billingPeriodId: ID;
 	buildingId: ID;
 	consumption: number;
@@ -24,7 +21,7 @@ type CalculateElectricityBillsInput = {
 	dateRange: DateRange;
 	occupants: OccupantWithMeasuringDevices[];
 };
-type CalculateElectricityBillsOutput = {
+export type CalculateElectricityBillsOutput = {
 	billsToInsert: EnergyBillInsert[];
 	consumptionRecordsToInsert: ConsumptionRecordInsert[];
 };
@@ -66,16 +63,18 @@ export function calculateElectricityBills(
 		};
 	});
 
-	// Figure out what remains to be split
-
-	const totalCostForMeasuredConsumption = sumPreciseBy(billsMeasured, (b) => b.measuredCost ?? 0);
-	const totalAreaOfUnmeasuredOccupants = sumPreciseBy(occupantsMeasured, (o) => o.squareMeters);
-	const remainingCostToSplit = totalCost.minus(totalCostForMeasuredConsumption);
-	const costPerSquareMeter = remainingCostToSplit.div(totalAreaOfUnmeasuredOccupants);
-
 	// Occupants charged based on their occupied area
 
 	const occupantsUnmeasured = input.occupants.filter(isChargedByArea);
+
+	// Figure out what remains to be split
+
+	const totalCostForMeasuredConsumption = sumPreciseBy(billsMeasured, (b) => b.measuredCost ?? 0);
+	const totalAreaOfUnmeasuredOccupants = sumPreciseBy(occupantsUnmeasured, (o) => o.squareMeters);
+	const remainingCostToSplit = totalCost.minus(totalCostForMeasuredConsumption);
+	const costPerSquareMeter = remainingCostToSplit.div(totalAreaOfUnmeasuredOccupants);
+
+	console.log({ remainingCostToSplit, totalAreaOfUnmeasuredOccupants });
 
 	const billsUnmeasured: EnergyBillInsert[] = occupantsUnmeasured.map((occupant) => ({
 		billingPeriodId: input.billingPeriodId,
