@@ -1,6 +1,15 @@
 import BigNumber from 'bignumber.js';
 
 /**
+ * A simple invariance check function
+ */
+export function assert(condition: boolean, message?: string): asserts condition {
+	if (!condition) {
+		throw new Error(message || 'Assertion failed');
+	}
+}
+
+/**
  * Typeguard that checks if a value is null or undefined
  */
 export function isNullable<T>(value: T | null | undefined): value is null | undefined {

@@ -4,13 +4,19 @@ import type { ConsumptionRecordInsert } from '$lib/models/consumption-record';
 import type { EnergyBillInsert } from '$lib/models/energy-bill';
 import type { MeasuringDevice } from '$lib/models/measuring-device';
 import type { Occupant } from '$lib/models/occupant';
+import { err, ok, type Result } from '$lib/result';
 import { sumPreciseBy } from '$lib/utils';
 import BigNumber from 'bignumber.js';
+
+export class CalculationInputError extends Error {
+	readonly _tag = 'CalculationInputError';
+}
 
 export type MeasuringDeviceBillRecord = Pick<MeasuringDevice, 'id' | 'name' | 'energyType'> & {
 	consumption?: number;
 };
-export type OccupantWithMeasuringDevices = Occupant & {
+type OccupantWithoutMetadata = Omit<Occupant, 'created' | 'updated' | 'deleted' | 'isDeleted'>;
+export type OccupantWithMeasuringDeviceRecords = OccupantWithoutMetadata & {
 	measuringDevices: MeasuringDeviceBillRecord[];
 };
 export type CalculateElectricityBillsInput = {
@@ -19,7 +25,7 @@ export type CalculateElectricityBillsInput = {
 	consumption: number;
 	totalCost: number;
 	dateRange: DateRange;
-	occupants: OccupantWithMeasuringDevices[];
+	occupants: OccupantWithMeasuringDeviceRecords[];
 };
 export type CalculateElectricityBillsOutput = {
 	billsToInsert: EnergyBillInsert[];
@@ -32,7 +38,11 @@ export type CalculateElectricityBillsOutput = {
  */
 export function calculateElectricityBills(
 	input: CalculateElectricityBillsInput
-): CalculateElectricityBillsOutput {
+): Result<CalculateElectricityBillsOutput, CalculationInputError> {
+	if (input.occupants.length === 0) {
+		return err(new CalculationInputError('No occupants given'));
+	}
+
 	const consumption = new BigNumber(input.consumption);
 	const totalCost = new BigNumber(input.totalCost);
 
@@ -74,8 +84,6 @@ export function calculateElectricityBills(
 	const remainingCostToSplit = totalCost.minus(totalCostForMeasuredConsumption);
 	const costPerSquareMeter = remainingCostToSplit.div(totalAreaOfUnmeasuredOccupants);
 
-	console.log({ remainingCostToSplit, totalAreaOfUnmeasuredOccupants });
-
 	const billsUnmeasured: EnergyBillInsert[] = occupantsUnmeasured.map((occupant) => ({
 		billingPeriodId: input.billingPeriodId,
 		billedArea: occupant.squareMeters,
@@ -101,15 +109,18 @@ export function calculateElectricityBills(
 		totalCost: totalCost.toNumber()
 	};
 
-	return {
+	return ok({
 		billsToInsert: billsMeasured.concat(billsUnmeasured, billForBuilding),
 		consumptionRecordsToInsert: consumptionRecords
-	};
+	});
 }
 
 // -- Helpers --
 
-function getConsumptionRecords(occupants: OccupantWithMeasuringDevices[], dateRange: DateRange) {
+function getConsumptionRecords(
+	occupants: OccupantWithMeasuringDeviceRecords[],
+	dateRange: DateRange
+) {
 	const devices = occupants.flatMap(getElectricityMeasuringDevices);
 
 	return devices.map((device) => ({
@@ -121,21 +132,21 @@ function getConsumptionRecords(occupants: OccupantWithMeasuringDevices[], dateRa
 	}));
 }
 
-function sumMeasuredConsumption(occupant: OccupantWithMeasuringDevices) {
+function sumMeasuredConsumption(occupant: OccupantWithMeasuringDeviceRecords) {
 	const devices = getElectricityMeasuringDevices(occupant);
 	const totalConsumption = sumPreciseBy(devices, (d) => d.consumption ?? 0);
 	return totalConsumption;
 }
 
-function getElectricityMeasuringDevices(occupant: OccupantWithMeasuringDevices) {
+function getElectricityMeasuringDevices(occupant: OccupantWithMeasuringDeviceRecords) {
 	return occupant.measuringDevices.filter(isElectricityType);
 }
 
-function hasElectricMeasuringDevices(occupant: OccupantWithMeasuringDevices) {
+function hasElectricMeasuringDevices(occupant: OccupantWithMeasuringDeviceRecords) {
 	return occupant.measuringDevices.some(isElectricityType);
 }
 
-function isChargedByArea(occupant: Occupant) {
+function isChargedByArea(occupant: OccupantWithoutMetadata) {
 	return occupant.chargedUnmeasuredElectricity === true;
 }
 

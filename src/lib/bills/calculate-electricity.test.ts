@@ -1,11 +1,11 @@
 import { id, type ID } from '$lib/models/common';
 import type { Occupant } from '$lib/models/occupant';
-import { faker } from '@faker-js/faker/locale/cs_CZ';
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import {
+	CalculationInputError,
 	calculateElectricityBills,
 	type MeasuringDeviceBillRecord,
-	type OccupantWithMeasuringDevices
+	type OccupantWithMeasuringDeviceRecords
 } from './calculate-electricity';
 
 describe('calculateElectricityBills', () => {
@@ -14,10 +14,26 @@ describe('calculateElectricityBills', () => {
 	const billingPeriodId = id();
 	const renterA = createRenter(buildingId, { name: 'Renter A', squareMeters: 10 });
 	const renterB = createRenter(buildingId, { name: 'Renter B', squareMeters: 20 });
-	const renterWithDevice = createRenter(buildingId, { name: 'Renter w/ device', squareMeters: 30 });
-	const rentersMeasuringDevice = createMeasurementRecord(100);
-	renterWithDevice.measuringDevices = [rentersMeasuringDevice];
+	const rentersMeasurement = createMeasurementRecord(100);
+	const renterWithDevice = createRenter(buildingId, {
+		name: 'Renter w/ device',
+		squareMeters: 30,
+		measuringDevices: [rentersMeasurement]
+	});
+	const ownerAMeasurement = createMeasurementRecord(50.55);
+	const ownerA = createOwner(buildingId, {
+		name: 'Owner A',
+		squareMeters: 20,
+		measuringDevices: [ownerAMeasurement]
+	});
+	const ownerBMeasurement = createMeasurementRecord(75.12);
+	const ownerB = createOwner(buildingId, {
+		name: 'Owner B',
+		squareMeters: 70,
+		measuringDevices: [ownerBMeasurement]
+	});
 
+	// Tests
 	it('calculates bills for renters only', () => {
 		const result = calculateElectricityBills({
 			buildingId,
@@ -30,7 +46,11 @@ describe('calculateElectricityBills', () => {
 			},
 			occupants: [renterA, renterB]
 		});
-		expect(result.billsToInsert).toMatchObject([
+
+		assert(result.success === true, 'Calculation failed');
+		const { billsToInsert, consumptionRecordsToInsert } = result.value;
+
+		expect(billsToInsert).toMatchObject([
 			{
 				billedArea: 10,
 				costPerSquareMeter: 240,
@@ -55,12 +75,12 @@ describe('calculateElectricityBills', () => {
 			}
 		]);
 		// Association to occupant and building is mutually exclusive
-		for (const bill of result.billsToInsert) {
+		for (const bill of billsToInsert) {
 			if (bill.occupantId) expect(bill.buildingId).toBeFalsy();
 			else if (bill.buildingId) expect(bill.occupantId).toBeFalsy();
 		}
 		// There shouldn't be any consumption records
-		expect(result.consumptionRecordsToInsert).toHaveLength(0);
+		expect(consumptionRecordsToInsert).toHaveLength(0);
 	});
 	it('calculates bills for renters with measuring devices', () => {
 		const result = calculateElectricityBills({
@@ -74,7 +94,11 @@ describe('calculateElectricityBills', () => {
 			},
 			occupants: [renterA, renterB, renterWithDevice]
 		});
-		expect(result.billsToInsert).toMatchObject([
+
+		assert(result.success === true, 'Calculation failed');
+		const { billsToInsert, consumptionRecordsToInsert } = result.value;
+
+		expect(billsToInsert).toMatchObject([
 			{
 				energyType: 'electricity',
 				totalCost: 600,
@@ -113,35 +137,121 @@ describe('calculateElectricityBills', () => {
 				totalCost: 7200
 			}
 		]);
-		expect(result.consumptionRecordsToInsert).toMatchObject([
+		expect(consumptionRecordsToInsert).toMatchObject([
 			{
 				energyType: 'electricity',
 				consumption: 100,
-				measuringDeviceId: rentersMeasuringDevice.id
+				measuringDeviceId: rentersMeasurement.id
 			}
 		]);
 	});
+	it('calculates bills for renters, renters with measuring devices and owners', () => {
+		const result = calculateElectricityBills({
+			billingPeriodId,
+			buildingId,
+			consumption: 1500,
+			totalCost: 9000,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renterA, renterB, renterWithDevice, ownerA, ownerB]
+		});
+
+		assert(result.success === true, 'Calculation failed');
+		const { billsToInsert, consumptionRecordsToInsert } = result.value;
+
+		expect(billsToInsert).toMatchObject([
+			{
+				energyType: 'electricity',
+				totalCost: 600,
+				costPerUnit: 6,
+				totalConsumption: 100,
+				occupantId: renterWithDevice.id,
+				measuredCost: 600
+			},
+			{
+				energyType: 'electricity',
+				totalCost: 303.3,
+				costPerUnit: 6,
+				totalConsumption: 50.55,
+				occupantId: ownerA.id,
+				measuredCost: 303.3
+			},
+			{
+				energyType: 'electricity',
+				totalCost: 450.72,
+				costPerUnit: 6,
+				totalConsumption: 75.12,
+				occupantId: ownerB.id,
+				measuredCost: 450.72
+			},
+			{
+				billedArea: 10,
+				costPerSquareMeter: 127.433,
+				energyType: 'electricity',
+				occupantId: renterA.id,
+				totalCost: 1274.33
+			},
+			{
+				billedArea: 20,
+				costPerSquareMeter: 127.433,
+				energyType: 'electricity',
+				occupantId: renterB.id,
+				totalCost: 2548.66
+			},
+			{
+				billedArea: 30,
+				costPerSquareMeter: 127.433,
+				energyType: 'electricity',
+				occupantId: renterWithDevice.id,
+				totalCost: 3822.99
+			},
+			{
+				buildingId,
+				costPerSquareMeter: 127.433,
+				costPerUnit: 6,
+				energyType: 'electricity',
+				totalConsumption: 1500,
+				totalCost: 9000
+			}
+		]);
+		expect(consumptionRecordsToInsert).toMatchObject([
+			{
+				energyType: 'electricity',
+				consumption: 100,
+				measuringDeviceId: rentersMeasurement.id
+			},
+			{
+				energyType: 'electricity',
+				consumption: 50.55,
+				measuringDeviceId: ownerAMeasurement.id
+			},
+			{
+				energyType: 'electricity',
+				consumption: 75.12,
+				measuringDeviceId: ownerBMeasurement.id
+			}
+		]);
+	});
+	it('fails given no occupants', () => {
+		const result = calculateElectricityBills({
+			billingPeriodId,
+			buildingId,
+			consumption: 1500,
+			totalCost: 9000,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: []
+		});
+		assert(result.success === false, 'Calculation did not fail, but should');
+		expect(result.error).toBeInstanceOf(CalculationInputError);
+	});
 });
 
-// -- Helpers --
-
-function createOccupant(buildingId: ID): Occupant {
-	const now = new Date();
-	return {
-		id: id(),
-		buildingId,
-		chargedUnmeasuredElectricity: false,
-		chargedUnmeasuredHeating: false,
-		chargedUnmeasuredWater: false,
-		name: faker.datatype.boolean() ? faker.company.name() : faker.person.fullName(),
-		squareMeters: 69,
-		created: now,
-		deleted: null,
-		heatingFixedCostShare: null,
-		isDeleted: false,
-		updated: now
-	};
-}
+// Helpers
 
 function createMeasurementRecord(consumption: number): MeasuringDeviceBillRecord {
 	return {
@@ -154,12 +264,45 @@ function createMeasurementRecord(consumption: number): MeasuringDeviceBillRecord
 
 function createRenter(
 	buildingId: ID,
-	values: Partial<Occupant> = {}
-): OccupantWithMeasuringDevices {
-	const occupant = createOccupant(buildingId);
-	occupant.chargedUnmeasuredElectricity = true;
-	occupant.chargedUnmeasuredHeating = true;
-	occupant.chargedUnmeasuredWater = true;
-	occupant.heatingFixedCostShare = null;
-	return { ...occupant, measuringDevices: [], ...values };
+	values: Partial<OccupantWithMeasuringDeviceRecords> = {}
+): OccupantWithMeasuringDeviceRecords {
+	return {
+		...createOccupant(buildingId),
+		measuringDevices: [],
+		chargedUnmeasuredElectricity: true,
+		chargedUnmeasuredHeating: true,
+		chargedUnmeasuredWater: true,
+		...values
+	};
+}
+
+function createOwner(
+	buildingId: ID,
+	values: Partial<OccupantWithMeasuringDeviceRecords> = {}
+): OccupantWithMeasuringDeviceRecords {
+	return {
+		...createOccupant(buildingId),
+		measuringDevices: [],
+		chargedUnmeasuredElectricity: false,
+		chargedUnmeasuredHeating: false,
+		chargedUnmeasuredWater: false,
+		...values
+	};
+}
+
+function createOccupant(buildingId: ID): Occupant {
+	return {
+		id: id(),
+		buildingId,
+		chargedUnmeasuredElectricity: false,
+		chargedUnmeasuredHeating: false,
+		chargedUnmeasuredWater: false,
+		name: 'Occupant',
+		squareMeters: 69,
+		created: new Date(),
+		deleted: null,
+		heatingFixedCostShare: null,
+		isDeleted: false,
+		updated: new Date()
+	};
 }
