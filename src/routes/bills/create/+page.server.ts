@@ -1,4 +1,4 @@
-import { calculateElectricityBills } from '$lib/bills/calculate-electricity';
+import { calculateBills } from '$lib/bills/calculate';
 import {
 	billingPeriods,
 	consumptionRecords,
@@ -122,7 +122,7 @@ export const actions: Actions = {
 		try {
 			// FIXME: actual transaction?
 			await handleElectricity(form.data, billingPeriod.id, building.id);
-			await calculateWaterBills(form.data, billingPeriod, building.id);
+			await handleWater(form.data, billingPeriod.id, building.id);
 			await calculateHeatingBills(form.data, billingPeriod, building.id);
 		} catch (error) {
 			console.error(error);
@@ -141,129 +141,55 @@ async function handleElectricity(
 	billingPeriodId: ID,
 	buildingId: ID
 ): Promise<void> {
-	const calculation = calculateElectricityBills({
+	const calculation = calculateBills({
 		billingPeriodId,
 		buildingId,
-		consumption: formData.electricityTotalConsumption,
+		energyType: 'electricity',
+		totalConsumption: formData.electricityTotalConsumption,
 		totalCost: formData.electricityTotalCost,
 		dateRange: formData.dateRange,
 		occupants: formData.occupants
 	});
 
-	assert(calculation.success);
+	// TODO: handle the error
+	assert(calculation.success, 'Electricity calculation failed');
 
-	await db.batch([
-		db.insert(energyBills).values(calculation.value.billsToInsert),
-		db.insert(consumptionRecords).values(calculation.value.consumptionRecordsToInsert)
-	]);
+	await db.transaction(async (tx) => {
+		if (calculation.value.billsToInsert.length > 0) {
+			await tx.insert(energyBills).values(calculation.value.billsToInsert);
+		}
+		if (calculation.value.consumptionRecordsToInsert.length > 0) {
+			await tx.insert(consumptionRecords).values(calculation.value.consumptionRecordsToInsert);
+		}
+	});
 }
 
-async function calculateWaterBills(
-	form: FormSchema,
-	billingPeriod: BillingPeriod,
+async function handleWater(
+	formData: FormSchema,
+	billingPeriodId: ID,
 	buildingId: ID
-): Promise<EnergyBill[]> {
-	const unitCost = new BigNumber(form.waterTotalCost).dividedBy(form.waterTotalConsumption);
-
-	// Get occupants with measuring devices
-	const measuredOccupants = form.occupants.filter((occupant) => {
-		return occupant.measuringDevices.some((device) => device.energyType === 'water');
-	});
-	// Persist their consumption records based on the usage of their measuring devices
-	const measuredConsumptionsInserts = measuredOccupants.flatMap((occupant) => {
-		return occupant.measuringDevices
-			.filter((device) => device.energyType === 'water')
-			.map((device): ConsumptionRecordInsert => {
-				return {
-					measuringDeviceId: device.id,
-					startDate: form.dateRange.start,
-					endDate: form.dateRange.end,
-					energyType: device.energyType,
-					consumption: device.consumption ?? 0
-				};
-			});
-	});
-	// Calculate the total cost of water for each measured occupant based on the actual usage
-	const measuredBillsInserts = measuredOccupants.map((occupant): EnergyBillInsert => {
-		const totalConsumption = occupant.measuringDevices
-			.filter((device) => device.energyType === 'water')
-			.reduce((acc, device) => new BigNumber(device.consumption ?? 0).plus(acc).toNumber(), 0);
-		const cost = new BigNumber(totalConsumption).times(unitCost).toNumber();
-		return {
-			billingPeriodId: billingPeriod.id,
-			costPerUnit: unitCost.toNumber(),
-			endDate: form.dateRange.end,
-			energyType: 'water',
-			occupantId: occupant.id,
-			startDate: form.dateRange.start,
-			totalConsumption,
-			totalCost: cost
-		};
-	});
-
-	const totalMeasuredCost = measuredBillsInserts.reduce((acc, bill) => acc + bill.totalCost, 0);
-
-	// Get occupants that are charged based on the square meters of their area
-	const unmeasuredOccupants = form.occupants.filter((occupant) => {
-		return occupant.chargedUnmeasuredWater === true;
-	});
-	const totalUnmeasuredArea = unmeasuredOccupants.reduce(
-		(acc, occupant) => acc.plus(occupant.squareMeters),
-		new BigNumber(0)
-	);
-	const remainingCost = new BigNumber(form.waterTotalCost).minus(totalMeasuredCost);
-	const costPerSquareMeter = remainingCost.div(totalUnmeasuredArea).toNumber();
-
-	// Calculate the total cost of water for each unmeasured occupant by multiplying the cost per square meter by the area
-	const unmeasuredBillsInserts = unmeasuredOccupants.map((occupant): EnergyBillInsert => {
-		const cost = new BigNumber(occupant.squareMeters).times(costPerSquareMeter).toNumber();
-		return {
-			billingPeriodId: billingPeriod.id,
-			billedArea: occupant.squareMeters,
-			costPerSquareMeter,
-			endDate: form.dateRange.end,
-			energyType: 'water',
-			occupantId: occupant.id,
-			startDate: form.dateRange.start,
-			totalCost: cost
-		};
-	});
-
-	// const totalUnmeasuredCost = unmeasuredBillsInserts.reduce(
-	// 	(acc, bill) => acc.plus(bill.totalCost),
-	// 	new BigNumber(0)
-	// );
-
-	const buildingBill: EnergyBillInsert = {
-		billingPeriodId: billingPeriod.id,
+): Promise<void> {
+	const calculation = calculateBills({
+		billingPeriodId,
 		buildingId,
-		costPerSquareMeter,
-		costPerUnit: unitCost.toNumber(),
-		endDate: form.dateRange.end,
 		energyType: 'water',
-		startDate: form.dateRange.start,
-		totalConsumption: form.waterTotalConsumption,
-		totalCost: form.waterTotalCost
-	};
-	const billsToInsert = measuredBillsInserts.concat(unmeasuredBillsInserts).concat(buildingBill);
+		totalConsumption: formData.waterTotalConsumption,
+		totalCost: formData.waterTotalCost,
+		dateRange: formData.dateRange,
+		occupants: formData.occupants
+	});
 
-	let bills: EnergyBill[] = [];
+	// TODO: handle the error
+	assert(calculation.success, 'Water calculation failed');
 
-	if (measuredConsumptionsInserts.length === 0) {
-		const [newBills] = await db.batch([
-			// FIXME: make sure inserts' values are not empty, otherwise it will throw an error
-			db.insert(energyBills).values(billsToInsert).returning()
-		]);
-		bills = newBills;
-	} else {
-		const [newBills] = await db.batch([
-			db.insert(energyBills).values(billsToInsert).returning(),
-			db.insert(consumptionRecords).values(measuredConsumptionsInserts).returning()
-		]);
-		bills = newBills;
-	}
-
-	return bills;
+	await db.transaction(async (tx) => {
+		if (calculation.value.billsToInsert.length > 0) {
+			await tx.insert(energyBills).values(calculation.value.billsToInsert);
+		}
+		if (calculation.value.consumptionRecordsToInsert.length > 0) {
+			await tx.insert(consumptionRecords).values(calculation.value.consumptionRecordsToInsert);
+		}
+	});
 }
 
 async function calculateHeatingBills(

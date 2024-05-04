@@ -10,6 +10,13 @@ export function assert(condition: boolean, message?: string): asserts condition 
 }
 
 /**
+ * Capitalizes the first character in a string
+ */
+export function capitalize<S extends string>(str: S): Capitalize<S> {
+	return (str.charAt(0).toUpperCase() + str.slice(1)) as Capitalize<S>;
+}
+
+/**
  * Typeguard that checks if a value is null or undefined
  */
 export function isNullable<T>(value: T | null | undefined): value is null | undefined {
