@@ -1,29 +1,30 @@
 import type { DateRange } from '$lib/common-types';
-import type { ID, EnergyType } from '$lib/models/common';
+import type { EnergyType, ID } from '$lib/models/common';
 import type { ConsumptionRecordInsert } from '$lib/models/consumption-record';
 import type { EnergyBillInsert } from '$lib/models/energy-bill';
 import type { Occupant } from '$lib/models/occupant';
 
-/** Defines ID of a measuring device and the consumption it measured */
+/** Basic consumption information required for the calculation */
 export type MeasuringDeviceConsumption = {
 	id: ID;
 	energyType: EnergyType;
 	consumption?: number;
 };
 
-/** Defines basic occupant information and their measured consumptions */
+/** Basic occupant information required for the calculation */
 export type OccupantCalculationEntry = Pick<
 	Occupant,
 	| 'id'
 	| 'chargedUnmeasuredElectricity'
 	| 'chargedUnmeasuredHeating'
 	| 'chargedUnmeasuredWater'
+	| 'heatingFixedCostShare'
 	| 'squareMeters'
 > & {
 	measuringDevices: MeasuringDeviceConsumption[];
 };
 
-/** Input for the calculation (duh) */
+/** Input for the calculation. Everything that's required for the calculaction. */
 export type CalculationInput = {
 	/** ID of the parent Billing Period */
 	billingPeriodId: ID;
@@ -31,6 +32,8 @@ export type CalculationInput = {
 	buildingId: ID;
 	/** Type of the energy relevant for this calculation */
 	energyType: EnergyType;
+	/** Fixed part of the total cost, that's charged no matter the consumption. Only some energy types have this, e.g., heating */
+	fixedCost?: number;
 	/** Total consumption of the energy type in a given period */
 	totalConsumption: number;
 	/** Total cost of the consumption */
@@ -41,7 +44,7 @@ export type CalculationInput = {
 	occupants: OccupantCalculationEntry[];
 };
 
-/** Output from the calculation (kek) */
+/** Output from the calculation. Database insertion values. */
 export type CalculationOutput = {
 	/** Energy bills to insert (database insertion values) */
 	billsToInsert: EnergyBillInsert[];

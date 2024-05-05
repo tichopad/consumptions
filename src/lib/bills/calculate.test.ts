@@ -3,7 +3,7 @@ import type { Occupant } from '$lib/models/occupant';
 import { assert, describe, expect, test } from 'vitest';
 import { CalculationInputError, calculateBills } from './calculate';
 import type { MeasuringDeviceConsumption, OccupantCalculationEntry } from './calculation-types';
-import { sumPreciseBy } from '$lib/utils';
+import { isNullable, sumPreciseBy } from '$lib/utils';
 
 describe('calculateBills', () => {
 	// -- Context --
@@ -22,16 +22,38 @@ describe('calculateBills', () => {
 
 	const ownerAWaterConsumption = createMeasurementRecord('water', 2);
 	const ownerAElectricityConsumption = createMeasurementRecord('electricity', 50.55);
+	const ownerAHeatingConsumption = createMeasurementRecord('heating', 10);
 	const ownerA = createOwner(buildingId, {
 		squareMeters: 20,
-		measuringDevices: [ownerAElectricityConsumption, ownerAWaterConsumption]
+		measuringDevices: [
+			ownerAElectricityConsumption,
+			ownerAHeatingConsumption,
+			ownerAWaterConsumption
+		]
 	});
 
 	const ownerBWaterConsumption = createMeasurementRecord('water', 3);
 	const ownerBElectricityConsumption = createMeasurementRecord('electricity', 75.12);
+	const ownerBHeatingConsumption = createMeasurementRecord('heating', 5);
 	const ownerB = createOwner(buildingId, {
-		squareMeters: 70,
-		measuringDevices: [ownerBElectricityConsumption, ownerBWaterConsumption]
+		heatingFixedCostShare: 10,
+		measuringDevices: [
+			ownerBElectricityConsumption,
+			ownerBHeatingConsumption,
+			ownerBWaterConsumption
+		]
+	});
+
+	const ownerCWaterConsumption = createMeasurementRecord('water', 3);
+	const ownerCElectricityConsumption = createMeasurementRecord('electricity', 75.12);
+	const ownerCHeatingConsumption = createMeasurementRecord('heating', 6.5);
+	const ownerC = createOwner(buildingId, {
+		heatingFixedCostShare: 90,
+		measuringDevices: [
+			ownerCElectricityConsumption,
+			ownerCHeatingConsumption,
+			ownerCWaterConsumption
+		]
 	});
 
 	// -- Tests --
@@ -393,6 +415,61 @@ describe('calculateBills', () => {
 		]);
 	});
 
+	test('calculates heating bill correctly', () => {
+		const result = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'heating',
+			fixedCost: 5000,
+			totalConsumption: 95,
+			totalCost: 42500,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renterA, renterB, ownerA, ownerB, ownerC]
+		});
+
+		assert(result.success);
+
+		const ownerABill = result.value.billsToInsert.find((b) => b.occupantId === ownerA.id);
+		assert(ownerABill !== undefined, 'Owner A bill not found');
+		expect(ownerABill.fixedCost).toBeUndefined();
+		expect(ownerABill.measuredCost).toBe(ownerABill.totalCost);
+		expect(ownerABill.totalCost.toFixed(2)).toBe('4473.68');
+
+		const ownerBBill = result.value.billsToInsert.find((b) => b.occupantId === ownerB.id);
+		assert(ownerBBill !== undefined, 'Owner B bill not found');
+		assert(!isNullable(ownerBBill.fixedCost), 'Owner B fixed cost not defined');
+		assert(!isNullable(ownerBBill.measuredCost), 'Owner B measured cost not defined');
+		expect(ownerBBill.fixedCost).toBe(500);
+		expect(ownerBBill.measuredCost.toFixed(2)).toBe('2236.84');
+		expect(ownerBBill.totalCost.toFixed(2)).toBe('2736.84');
+
+		const ownerCBill = result.value.billsToInsert.find((b) => b.occupantId === ownerC.id);
+		assert(ownerCBill !== undefined, 'Owner C bill not found');
+		assert(!isNullable(ownerCBill.fixedCost), 'Owner C fixed cost not defined');
+		assert(!isNullable(ownerCBill.measuredCost), 'Owner C measured cost not defined');
+		expect(ownerCBill.fixedCost).toBe(4500);
+		expect(ownerCBill.measuredCost.toFixed(2)).toBe('2907.89');
+		expect(ownerCBill.totalCost.toFixed(2)).toBe('7407.89');
+
+		const occupantsBills = result.value.billsToInsert.filter((b) => isNullable(b.buildingId));
+
+		const occupantsFixedCostSum = sumPreciseBy(occupantsBills, (b) => b.fixedCost ?? 0);
+		expect(occupantsFixedCostSum.toFixed(2)).toBe('5000.00');
+
+		const occupantsTotalCostSum = sumPreciseBy(occupantsBills, (b) => b.totalCost);
+		expect(occupantsTotalCostSum.toFixed(2)).toBe('42500.00');
+
+		const buildingBill = result.value.billsToInsert.find((b) => !isNullable(b.buildingId));
+		assert(!isNullable(buildingBill), 'Building bill is not defined');
+		expect(buildingBill.fixedCost).toBe(5000);
+		expect(buildingBill.totalCost).toBe(42500);
+		expect(buildingBill.costPerSquareMeter?.toFixed(2)).toBe('929.39');
+		expect(buildingBill.costPerUnit?.toFixed(2)).toBe('447.37');
+	});
+
 	test('calculated bills equal the input total cost', () => {
 		const electricityResult = calculateBills({
 			billingPeriodId,
@@ -536,6 +613,58 @@ describe('calculateBills', () => {
 		});
 		assert(negativeResult.success === false);
 		expect(negativeResult.error).toBeInstanceOf(CalculationInputError);
+	});
+
+	test('fails given invalid fixed cost', () => {
+		const result = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'heating',
+			fixedCost: -1000,
+			totalConsumption: 95,
+			totalCost: 42500,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renterA]
+		});
+		assert(result.success === false);
+		expect(result.error).toBeInstanceOf(CalculationInputError);
+	});
+
+	test('fails given fixed cost and other energy type than "heating"', () => {
+		const waterResult = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'water',
+			fixedCost: 5000,
+			totalConsumption: 95,
+			totalCost: 42500,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renterA]
+		});
+		assert(waterResult.success === false);
+		expect(waterResult.error).toBeInstanceOf(CalculationInputError);
+
+		const electricityResult = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'electricity',
+			fixedCost: 5000,
+			totalConsumption: 95,
+			totalCost: 42500,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renterA]
+		});
+		assert(electricityResult.success === false);
+		expect(electricityResult.error).toBeInstanceOf(CalculationInputError);
 	});
 });
 
