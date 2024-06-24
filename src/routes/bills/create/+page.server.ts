@@ -180,7 +180,7 @@ async function calculateAndStoreBills(
 		heating.value.consumptionRecordsToInsert
 	);
 
-	await db.transaction(async (tx) => {
+	return db.transaction(async (tx) => {
 		if (bills.length > 0) {
 			await tx.insert(energyBills).values(bills);
 		}
