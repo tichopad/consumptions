@@ -1,7 +1,7 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"ui": "tui",
-	"pipeline": {
+	"tasks": {
 		"db:start": {
 			"cache": false,
 			"persistent": true
