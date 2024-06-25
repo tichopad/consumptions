@@ -1,8 +1,6 @@
 {
-	"version": "5",
+	"version": "6",
 	"dialect": "sqlite",
-	"id": "8d7ab861-d233-4f1b-93ec-b0ea379095bb",
-	"prevId": "92bf1f5e-7743-4a9a-8714-36df82f33c3a",
 	"tables": {
 		"billingPeriods": {
 			"name": "billingPeriods",
@@ -57,11 +55,11 @@
 				"billingPeriods_buildingId_buildings_id_fk": {
 					"name": "billingPeriods_buildingId_buildings_id_fk",
 					"tableFrom": "billingPeriods",
-					"tableTo": "buildings",
 					"columnsFrom": ["buildingId"],
+					"tableTo": "buildings",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -180,11 +178,11 @@
 				"consumptionRecords_measuringDeviceId_measuringDevices_id_fk": {
 					"name": "consumptionRecords_measuringDeviceId_measuringDevices_id_fk",
 					"tableFrom": "consumptionRecords",
-					"tableTo": "measuringDevices",
 					"columnsFrom": ["measuringDeviceId"],
+					"tableTo": "measuringDevices",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -306,29 +304,29 @@
 				"energyBills_buildingId_buildings_id_fk": {
 					"name": "energyBills_buildingId_buildings_id_fk",
 					"tableFrom": "energyBills",
-					"tableTo": "buildings",
 					"columnsFrom": ["buildingId"],
+					"tableTo": "buildings",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				},
 				"energyBills_occupantId_occupants_id_fk": {
 					"name": "energyBills_occupantId_occupants_id_fk",
 					"tableFrom": "energyBills",
-					"tableTo": "occupants",
 					"columnsFrom": ["occupantId"],
+					"tableTo": "occupants",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				},
 				"energyBills_billingPeriodId_billingPeriods_id_fk": {
 					"name": "energyBills_billingPeriodId_billingPeriods_id_fk",
 					"tableFrom": "energyBills",
-					"tableTo": "billingPeriods",
 					"columnsFrom": ["billingPeriodId"],
+					"tableTo": "billingPeriods",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -402,11 +400,11 @@
 				"measuringDevices_occupantId_occupants_id_fk": {
 					"name": "measuringDevices_occupantId_occupants_id_fk",
 					"tableFrom": "measuringDevices",
-					"tableTo": "occupants",
 					"columnsFrom": ["occupantId"],
+					"tableTo": "occupants",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -511,11 +509,11 @@
 				"occupants_buildingId_buildings_id_fk": {
 					"name": "occupants_buildingId_buildings_id_fk",
 					"tableFrom": "occupants",
-					"tableTo": "buildings",
 					"columnsFrom": ["buildingId"],
+					"tableTo": "buildings",
 					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
+					"onUpdate": "no action",
+					"onDelete": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
@@ -524,8 +522,9 @@
 	},
 	"enums": {},
 	"_meta": {
-		"schemas": {},
 		"tables": {},
 		"columns": {}
-	}
+	},
+	"id": "8d7ab861-d233-4f1b-93ec-b0ea379095bb",
+	"prevId": "92bf1f5e-7743-4a9a-8714-36df82f33c3a"
 }

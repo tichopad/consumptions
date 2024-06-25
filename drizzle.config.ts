@@ -10,11 +10,12 @@ const env = z
 	.parse(process.env);
 
 export default {
-	schema: './src/lib/models/schema.ts',
-	out: './drizzle/migrations',
-	driver: 'turso',
+	dialect: 'sqlite',
 	dbCredentials: {
 		url: env.DATABASE_URL,
-		authToken: env.DATABASE_AUTH_TOKEN
-	}
+		authToken: env.DATABASE_AUTH_TOKEN || undefined // No empty strings here
+	},
+	driver: 'turso',
+	out: './drizzle/migrations',
+	schema: './src/lib/models/schema.ts'
 } satisfies Config;
