@@ -698,14 +698,6 @@ describe('calculateBills', () => {
 		const renter2 = createRenter(buildingId, { squareMeters: 10 });
 		const renter3 = createRenter(buildingId, { squareMeters: 50 });
 
-		console.log({
-			owner1Id: owner1.id,
-			owner2Id: owner2.id,
-			renter1Id: renter1.id,
-			renter2Id: renter2.id,
-			renter3Id: renter3.id
-		});
-
 		// Electricity
 		const electricityResult = calculateBills({
 			billingPeriodId,
