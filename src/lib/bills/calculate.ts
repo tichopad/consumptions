@@ -17,6 +17,14 @@ export class CalculationInputError extends Error {
 	message = 'Calculation failed because of an invalid input';
 }
 
+/** Describes a negative cost or calculated value */
+export class UnexpectedNegativeCalculationError extends Error {
+	message = 'Calculation was expected to return a positive value, but it returned a negative value';
+}
+
+// All possible expected errors
+type CalculationError = CalculationInputError | UnexpectedNegativeCalculationError;
+
 /**
  * Calculates bills for a given period, energy type and occupants.
  * Returns database inputs.
@@ -35,7 +43,7 @@ export class CalculationInputError extends Error {
  */
 export function calculateBills(
 	input: CalculationInput
-): Result<CalculationOutput, CalculationInputError> {
+): Result<CalculationOutput, CalculationError> {
 	if (input.occupants.length === 0) {
 		return err(new CalculationInputError('No occupants given'));
 	}
@@ -63,8 +71,25 @@ export function calculateBills(
 		input.occupants,
 		(o) => o.heatingFixedCostShare ?? 0
 	);
-	const costPerFixedHeatingShare =
-		fixedCost !== null ? fixedCost.dividedBy(sumOfFixedHeatingShares) : null;
+	let costPerFixedHeatingShare: BigNumber | null = null;
+
+	// If there's no fixed cost, there's no need to calculate the share
+	if (fixedCost !== null) {
+		if (sumOfFixedHeatingShares.isEqualTo(0)) {
+			costPerFixedHeatingShare = null;
+		} else {
+			costPerFixedHeatingShare = fixedCost.dividedBy(sumOfFixedHeatingShares);
+		}
+	}
+
+	// If the cost per fixed heating share is negative, return an error
+	if (costPerFixedHeatingShare !== null && costPerFixedHeatingShare.isNegative()) {
+		return err(
+			new UnexpectedNegativeCalculationError(
+				'Cost per fixed heating share turned out to be negative'
+			)
+		);
+	}
 
 	// Process occupants with measuring devices
 	const occupantsMeasured = input.occupants.filter((o) => hasDevices(input.energyType, o));
@@ -92,12 +117,26 @@ export function calculateBills(
 		.minus(totalCostForMeasuredConsumption)
 		.minus(fixedCost ?? 0);
 
+	// If the remaining cost to split is negative, return an error
+	if (remainingCostToSplit.isNegative()) {
+		return err(
+			new UnexpectedNegativeCalculationError('Remaining cost to split turned out to be negative')
+		);
+	}
+
 	// Avoid division by zero if there's no unmeasured area ...
 	// I could skip the calculation here, but if there's an occupant with
 	// area = 0, I might want to support it
 	const costPerSquareMeter = totalAreaOfUnmeasuredOccupants.isEqualTo(0)
 		? new BigNumber(0)
 		: remainingCostToSplit.dividedBy(totalAreaOfUnmeasuredOccupants);
+
+	// If the cost per square meter is negative, return an error
+	if (costPerSquareMeter.isNegative()) {
+		return err(
+			new UnexpectedNegativeCalculationError('Cost per square meter turned out to be negative')
+		);
+	}
 
 	const billsUnmeasured: EnergyBillInsert[] = getUnmeasuredBills(
 		occupantsUnmeasured,

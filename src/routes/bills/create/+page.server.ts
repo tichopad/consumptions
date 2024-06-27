@@ -1,4 +1,5 @@
 import { calculateBills } from '$lib/bills/calculate';
+import { logger } from '$lib/logger';
 import {
 	billingPeriods,
 	consumptionRecords,
@@ -58,12 +59,16 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>;
 
 export const load: Load = async () => {
+	logger.debug('Loading data for /bills/create');
+
 	const occupantsList = await db.query.occupants.findMany({
 		orderBy: asc(occupants.name),
 		with: {
 			measuringDevices: true
 		}
 	});
+
+	logger.trace({ occupantsList }, 'Loaded the list of occupants');
 
 	const defaultOccupants: FormSchema['occupants'] = occupantsList.map((occupant) => {
 		return {
@@ -83,6 +88,9 @@ export const load: Load = async () => {
 		};
 	});
 
+	logger.trace({ defaultOccupants }, 'Prepared default occupants data for the bill creation form');
+	logger.debug('Returning loaded data');
+
 	return {
 		form: await superValidate({ occupants: defaultOccupants }, zod(formSchema)),
 		occupants: occupantsList
@@ -91,9 +99,11 @@ export const load: Load = async () => {
 
 export const actions: Actions = {
 	createBill: async (event) => {
-		console.group('createBill');
+		logger.debug('Handling createBill action');
 
 		const form = await superValidate(event, zod(formSchema));
+
+		logger.trace({ form }, 'Form data validated');
 
 		if (!form.valid) return fail(400, { form });
 
@@ -151,8 +161,8 @@ async function calculateAndStoreBills(
 		billingPeriodId,
 		buildingId,
 		energyType: 'water',
-		totalConsumption: formData.electricityTotalConsumption,
-		totalCost: formData.electricityTotalCost,
+		totalConsumption: formData.waterTotalConsumption,
+		totalCost: formData.waterTotalCost,
 		dateRange: formData.dateRange,
 		occupants: formData.occupants
 	});
@@ -163,8 +173,8 @@ async function calculateAndStoreBills(
 		buildingId,
 		energyType: 'heating',
 		fixedCost: formData.heatingTotalFixedCost,
-		totalConsumption: formData.waterTotalConsumption,
-		totalCost: formData.waterTotalCost,
+		totalConsumption: formData.heatingTotalConsumption,
+		totalCost: formData.heatingTotalCost,
 		dateRange: formData.dateRange,
 		occupants: formData.occupants
 	});

@@ -1,9 +1,9 @@
 import { id, type EnergyType, type ID } from '$lib/models/common';
 import type { Occupant } from '$lib/models/occupant';
+import { isNullable, sumPreciseBy } from '$lib/utils';
 import { assert, describe, expect, test } from 'vitest';
 import { CalculationInputError, calculateBills } from './calculate';
 import type { MeasuringDeviceConsumption, OccupantCalculationEntry } from './calculation-types';
-import { isNullable, sumPreciseBy } from '$lib/utils';
 
 describe('calculateBills', () => {
 	// -- Context --
@@ -665,6 +665,191 @@ describe('calculateBills', () => {
 		});
 		assert(electricityResult.success === false);
 		expect(electricityResult.error).toBeInstanceOf(CalculationInputError);
+	});
+
+	test('can handle weird negative calculation scenario', () => {
+		const owner1ElectricityConsumption = createMeasurementRecord('electricity', 150);
+		const owner1WaterConsumption = createMeasurementRecord('water', 3);
+		const owner1HeatingConsumption = createMeasurementRecord('heating', 5);
+		const owner1 = createOwner(buildingId, {
+			heatingFixedCostShare: null,
+			measuringDevices: [
+				owner1ElectricityConsumption,
+				owner1WaterConsumption,
+				owner1HeatingConsumption
+			]
+		});
+		const owner2ElectricityConsumption = createMeasurementRecord('electricity', 200);
+		const owner2WaterConsumption = createMeasurementRecord('water', 6.5);
+		const owner2HeatingConsumption = createMeasurementRecord('heating', 10);
+		const owner2 = createOwner(buildingId, {
+			heatingFixedCostShare: 10,
+			measuringDevices: [
+				owner2ElectricityConsumption,
+				owner2WaterConsumption,
+				owner2HeatingConsumption
+			]
+		});
+		const oliera = createOwner(buildingId, {
+			heatingFixedCostShare: 771,
+			measuringDevices: []
+		});
+		const renter1 = createRenter(buildingId, { squareMeters: 20 });
+		const renter2 = createRenter(buildingId, { squareMeters: 10 });
+		const renter3 = createRenter(buildingId, { squareMeters: 50 });
+
+		console.log({
+			owner1Id: owner1.id,
+			owner2Id: owner2.id,
+			renter1Id: renter1.id,
+			renter2Id: renter2.id,
+			renter3Id: renter3.id
+		});
+
+		// Electricity
+		const electricityResult = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'electricity',
+			totalConsumption: 1550,
+			totalCost: 9300,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renter1, renter2, renter3, owner1, owner2]
+		});
+		assert(electricityResult.success === true);
+		expect(electricityResult.value.billsToInsert).toMatchObject([
+			{
+				occupantId: owner1.id,
+				costPerUnit: 6,
+				totalCost: 900
+			},
+			{
+				occupantId: owner2.id,
+				costPerUnit: 6,
+				totalCost: 1200
+			},
+			{
+				occupantId: renter1.id,
+				costPerSquareMeter: 90,
+				totalCost: 1800
+			},
+			{
+				occupantId: renter2.id,
+				costPerSquareMeter: 90,
+				totalCost: 900
+			},
+			{
+				occupantId: renter3.id,
+				costPerSquareMeter: 90,
+				totalCost: 4500
+			},
+			{
+				buildingId,
+				costPerSquareMeter: 90,
+				costPerUnit: 6,
+				totalCost: 9300
+			}
+		]);
+
+		// Water
+		const waterResult = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'water',
+			totalConsumption: 11.6,
+			totalCost: 1023.352,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renter1, renter2, renter3, owner1, owner2]
+		});
+		assert(waterResult.success === true);
+		expect(waterResult.value.billsToInsert).toMatchObject([
+			{
+				occupantId: owner1.id,
+				costPerUnit: 88.22,
+				totalCost: 264.66
+			},
+			{
+				occupantId: owner2.id,
+				costPerUnit: 88.22,
+				totalCost: 573.43
+			},
+			{
+				occupantId: renter1.id,
+				costPerSquareMeter: 2.315775,
+				totalCost: 46.3155
+			},
+			{
+				occupantId: renter2.id,
+				costPerSquareMeter: 2.315775,
+				totalCost: 23.15775
+			},
+			{
+				occupantId: renter3.id,
+				costPerSquareMeter: 2.315775,
+				totalCost: 115.78875
+			},
+			{
+				buildingId,
+				costPerSquareMeter: 2.315775,
+				costPerUnit: 88.22,
+				totalCost: 1023.352
+			}
+		]);
+
+		// Heating - weird stuff happens here
+		const heatingResult = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'heating',
+			totalConsumption: 95,
+			totalCost: 42388.05,
+			fixedCost: 5000,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renter1, renter2, renter3, owner1, owner2, oliera]
+		});
+		assert(heatingResult.success === true);
+		expect(heatingResult.value.billsToInsert).toMatchObject([
+			{
+				occupantId: owner1.id,
+				costPerUnit: 446.19,
+				totalCost: 2230.95
+			},
+			{
+				occupantId: owner2.id,
+				costPerUnit: 446.19,
+				totalCost: 4525.920486555698
+			},
+			{
+				occupantId: renter1.id,
+				costPerSquareMeter: 383.69,
+				totalCost: 7673.8
+			},
+			{
+				occupantId: renter2.id,
+				costPerSquareMeter: 383.69,
+				totalCost: 3836.9
+			},
+			{
+				occupantId: renter3.id,
+				costPerSquareMeter: 383.69,
+				totalCost: 19184.5
+			},
+			{
+				buildingId,
+				costPerSquareMeter: 383.69,
+				costPerUnit: 446.19,
+				totalCost: 42388.05
+			}
+		]);
 	});
 });
 
