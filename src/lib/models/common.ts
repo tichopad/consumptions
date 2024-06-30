@@ -32,9 +32,9 @@ export const unitsByEnergyType = {
 
 /** Human-readable labels for each energy type */
 export const labelsByEnergyType = {
-	electricity: 'Electricity',
-	water: 'Water',
-	heating: 'Heating'
+	electricity: 'Elektřina',
+	water: 'Voda',
+	heating: 'Teplo'
 } as const satisfies Record<EnergyType, string>;
 
 // -- Column types --

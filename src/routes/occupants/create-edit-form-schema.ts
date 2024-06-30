@@ -1,7 +1,6 @@
-import { numberFmt } from '$lib/i18n/stores';
+import { numberFmt } from '$lib/i18n/helpers';
 import { isEmptyStringTrimmed, isNullable } from '$lib/utils';
 import BigNumber from 'bignumber.js';
-import { get } from 'svelte/store';
 import { z } from 'zod';
 
 /**
@@ -11,24 +10,25 @@ export const createOccupantFormSchema = z.object({
 	name: z
 		.string({
 			coerce: true,
-			invalid_type_error: 'Name has to be a text',
-			required_error: 'Name is required'
+			invalid_type_error: 'Název musí být text',
+			required_error: 'Název je povinný'
 		})
-		.min(1, 'Name has to be at least 1 character long')
-		.max(280, 'Name cannot be more than 280 characters long')
+		.min(1, 'Název musí být alespoň 1 znak dlouhý')
+		.max(280, 'Název nesmí být delší než 280 znaků')
 		.trim()
 		.default(''),
 	squareMeters: z
 		.number({
 			coerce: true,
-			invalid_type_error: 'Area must be a number',
-			required_error: 'Area is required'
+			invalid_type_error: 'Výměra musí být číslo',
+			required_error: 'Výměra je povinná'
 		})
-		.positive(`Area must be greater than ${get(numberFmt).format(0)} m²`)
-		.max(10000, `Area cannot be greater than ${get(numberFmt).format(10000)} m²`)
+		.positive(`Výměra musí být větší než ${numberFmt(0)} m²`)
+		.max(10000, `Výměra nesmí být větší než ${numberFmt(10000)} m²`)
 		.transform((value) => new BigNumber(value).decimalPlaces(3).toNumber()),
 	chargedUnmeasuredElectricity: z.boolean({
 		coerce: true,
+		// TODO:
 		invalid_type_error:
 			'Whether the occupant is charged for electricity consumption based on their area has to be specified',
 		required_error: 'Has to either be true or false'
@@ -52,7 +52,7 @@ export const createOccupantFormSchema = z.object({
 				invalid_type_error: 'The heating fixed cost share coefficient has to be a number'
 			})
 			.gt(0, 'Fixed heating cost share has to be greater than 0')
-			.max(781, `Fixed heating cost share cannot be greater than ${get(numberFmt).format(781)}`)
+			.max(781, `Fixed heating cost share cannot be greater than ${numberFmt(781)}`)
 			.transform((value) => new BigNumber(value).decimalPlaces(3).toNumber())
 			.nullable()
 			.optional()

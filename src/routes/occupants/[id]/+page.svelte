@@ -7,7 +7,6 @@
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
-	import { createDateFormatter } from '$lib/i18n/stores';
 	import { labelsByEnergyType } from '$lib/models/common';
 	import type { MeasuringDevice } from '$lib/models/measuring-device';
 	import type { ButtonEventHandler } from 'bits-ui';
@@ -16,11 +15,9 @@
 	import DeleteDeviceForm from './delete-device-form.svelte';
 	import EditDeviceForm from './edit-device-form.svelte';
 	import EditForm from './edit-form.svelte';
+	import { dateFmt } from '$lib/i18n/helpers';
 
 	export let data;
-
-	// Date formatting
-	const dateFmt = createDateFormatter({ dateStyle: 'short', timeStyle: 'short' });
 
 	// Add device dialog controls
 	let isAddDeviceDialogOpen = false;
@@ -117,8 +114,12 @@
 									</div>
 								</Table.Cell>
 								<Table.Cell>{device.name}</Table.Cell>
-								<Table.Cell>{$dateFmt.format(device.created)}</Table.Cell>
-								<Table.Cell>{$dateFmt.format(device.updated)}</Table.Cell>
+								<Table.Cell>
+									{dateFmt(device.created, { dateStyle: 'short', timeStyle: 'short' })}
+								</Table.Cell>
+								<Table.Cell>
+									{dateFmt(device.updated, { dateStyle: 'short', timeStyle: 'short' })}
+								</Table.Cell>
 								<Table.Cell title="Delete this device">
 									<Button
 										type="submit"

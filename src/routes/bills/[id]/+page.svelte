@@ -7,7 +7,7 @@
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
-	import { currencyFmt, dateFmt, numberFmt } from '$lib/i18n/stores';
+	import { currencyFmt, dateFmt, numberFmt } from '$lib/i18n/helpers';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
 	import { Person as PersonIcon } from 'svelte-radix';
 
@@ -31,9 +31,9 @@
 	<section slot="header">
 		<Header2>Billing period</Header2>
 		<Header1>
-			{$dateFmt.format(data.billingPeriod.startDate)}
+			{dateFmt(data.billingPeriod.startDate)}
 			-
-			{$dateFmt.format(data.billingPeriod.endDate)}
+			{dateFmt(data.billingPeriod.endDate)}
 		</Header1>
 	</section>
 	<!-- FIXME: showing updated timestamp for non-updateable entities doesn't make sense -->
@@ -50,13 +50,13 @@
 						<Table.Row>
 							<Table.Head class="w-[200px]">Total occupied area</Table.Head>
 							<Table.Cell>
-								{$numberFmt.format(data.occupiedArea)}&nbsp;m²
+								{numberFmt(data.occupiedArea)}&nbsp;m²
 							</Table.Cell>
 						</Table.Row>
 						<Table.Row>
 							<Table.Head>Occupants</Table.Head>
 							<Table.Cell>
-								{$numberFmt.format(data.occupantsWithBills.length)}
+								{numberFmt(data.occupantsWithBills.length)}
 							</Table.Cell>
 						</Table.Row>
 					</Table.Body>
@@ -94,26 +94,26 @@
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.electricityBill.totalConsumption !== null}
-									{$numberFmt.format(data.electricityBill.totalConsumption)}
+									{numberFmt(data.electricityBill.totalConsumption)}
 									{unitsByEnergyType['electricity']}
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.electricityBill.costPerUnit !== null}
-									{$currencyFmt.format(data.electricityBill.costPerUnit)}
+									{currencyFmt(data.electricityBill.costPerUnit)}
 									/
 									{unitsByEnergyType[data.electricityBill.energyType]}
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.electricityBill.costPerSquareMeter !== null}
-									{$currencyFmt.format(data.electricityBill.costPerSquareMeter)} / m²
+									{currencyFmt(data.electricityBill.costPerSquareMeter)} / m²
 								{:else}
 									-
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
-								{$currencyFmt.format(data.electricityBill.totalCost)}
+								{currencyFmt(data.electricityBill.totalCost)}
 							</Table.Cell>
 							<Table.Cell>-</Table.Cell>
 						</Table.Row>
@@ -128,26 +128,26 @@
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.waterBill.totalConsumption !== null}
-									{$numberFmt.format(data.waterBill.totalConsumption)}
+									{numberFmt(data.waterBill.totalConsumption)}
 									{unitsByEnergyType['water']}
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.waterBill.costPerUnit !== null}
-									{$currencyFmt.format(data.waterBill.costPerUnit)}
+									{currencyFmt(data.waterBill.costPerUnit)}
 									/
 									{unitsByEnergyType[data.waterBill.energyType]}
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.waterBill.costPerSquareMeter !== null}
-									{$currencyFmt.format(data.waterBill.costPerSquareMeter)} / m²
+									{currencyFmt(data.waterBill.costPerSquareMeter)} / m²
 								{:else}
 									-
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
-								{$currencyFmt.format(data.waterBill.totalCost)}
+								{currencyFmt(data.waterBill.totalCost)}
 							</Table.Cell>
 							<Table.Cell>-</Table.Cell>
 						</Table.Row>
@@ -162,30 +162,30 @@
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.heatingBill.totalConsumption !== null}
-									{$numberFmt.format(data.heatingBill.totalConsumption)}
+									{numberFmt(data.heatingBill.totalConsumption)}
 									{unitsByEnergyType['heating']}
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.heatingBill.costPerUnit !== null}
-									{$currencyFmt.format(data.heatingBill.costPerUnit)}
+									{currencyFmt(data.heatingBill.costPerUnit)}
 									/
 									{unitsByEnergyType[data.heatingBill.energyType]}
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.heatingBill.costPerSquareMeter !== null}
-									{$currencyFmt.format(data.heatingBill.costPerSquareMeter)} / m²
+									{currencyFmt(data.heatingBill.costPerSquareMeter)} / m²
 								{:else}
 									-
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
-								{$currencyFmt.format(data.heatingBill.totalCost)}
+								{currencyFmt(data.heatingBill.totalCost)}
 							</Table.Cell>
 							<Table.Cell>
 								{#if data.heatingBill.fixedCost !== null}
-									{$currencyFmt.format(data.heatingBill.fixedCost)}
+									{currencyFmt(data.heatingBill.fixedCost)}
 								{/if}
 							</Table.Cell>
 						</Table.Row>
@@ -211,7 +211,7 @@
 									<PersonIcon class="w-4 h-4 text-muted-foreground" />
 									{occupant.name}
 								</div>
-								<div class="ml-auto pr-4">{$currencyFmt.format(totalCost)}</div>
+								<div class="ml-auto pr-4">{currencyFmt(totalCost)}</div>
 							</Accordion.Trigger>
 							<Accordion.Content>
 								<div class="flex flex-col gap-3">
@@ -228,21 +228,21 @@
 													<Table.Row>
 														<Table.Head class="w-[200px]">Area</Table.Head>
 														<Table.Cell>
-															{$numberFmt.format(occupant.squareMeters)}&nbsp;m²
+															{numberFmt(occupant.squareMeters)}&nbsp;m²
 														</Table.Cell>
 													</Table.Row>
 													{#if occupant.heatingFixedCostShare !== null}
 														<Table.Row>
 															<Table.Head>Heating fixed cost share</Table.Head>
 															<Table.Cell>
-																{$numberFmt.format(occupant.heatingFixedCostShare)}
+																{numberFmt(occupant.heatingFixedCostShare)}
 															</Table.Cell>
 														</Table.Row>
 													{/if}
 													<Table.Row>
 														<Table.Head>Total cost</Table.Head>
 														<Table.Cell>
-															{$currencyFmt.format(totalCost)}
+															{currencyFmt(totalCost)}
 														</Table.Cell>
 													</Table.Row>
 												</Table.Body>
@@ -279,13 +279,13 @@
 																	</Table.Cell>
 																	<Table.Cell>
 																		{#if bill.costPerSquareMeter !== null}
-																			{$currencyFmt.format(bill.costPerSquareMeter)} / m²
+																			{currencyFmt(bill.costPerSquareMeter)} / m²
 																		{:else}
 																			-
 																		{/if}
 																	</Table.Cell>
 																	<Table.Cell>
-																		{$currencyFmt.format(bill.totalCost)}
+																		{currencyFmt(bill.totalCost)}
 																	</Table.Cell>
 																</Table.Row>
 															{/if}
@@ -327,12 +327,12 @@
 																		</div>
 																	</Table.Cell>
 																	<Table.Cell>
-																		{$numberFmt.format(bill.totalConsumption)}
+																		{numberFmt(bill.totalConsumption)}
 																		{unitsByEnergyType[bill.energyType]}
 																	</Table.Cell>
 																	<Table.Cell>
 																		{#if bill.costPerUnit !== null}
-																			{$currencyFmt.format(bill.costPerUnit)}
+																			{currencyFmt(bill.costPerUnit)}
 																			/
 																			{unitsByEnergyType[bill.energyType]}
 																		{:else}
@@ -340,11 +340,11 @@
 																		{/if}
 																	</Table.Cell>
 																	<Table.Cell>
-																		{$currencyFmt.format(bill.totalCost)}
+																		{currencyFmt(bill.totalCost)}
 																	</Table.Cell>
 																	<Table.Cell>
 																		{#if bill.fixedCost !== null}
-																			{$currencyFmt.format(bill.fixedCost)}
+																			{currencyFmt(bill.fixedCost)}
 																		{:else}
 																			-
 																		{/if}

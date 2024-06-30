@@ -2,10 +2,10 @@ import type { Load } from '@sveltejs/kit';
 
 export const load: Load = async ({ url }) => {
 	const navLinks = [
-		{ name: 'Dashboard', href: '/' },
-		// { name: 'Buildings', href: '/buildings' },
-		{ name: 'Occupants', href: '/occupants' },
-		{ name: 'Bills', href: '/bills' }
+		{ name: 'Přehled', href: '/' },
+		// { name: 'Budovy', href: '/buildings' },
+		{ name: 'Subjekty', href: '/occupants' },
+		{ name: 'Vyúčtování', href: '/bills' }
 	];
 
 	const isActiveHref = (href: string) => {

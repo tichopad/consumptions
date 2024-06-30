@@ -6,14 +6,12 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
-	import { createDateFormatter, numberFmt } from '$lib/i18n/stores';
+	import { dateFmt, numberFmt } from '$lib/i18n/helpers';
 	import type { Occupant } from '$lib/models/occupant';
 	import { QuestionMarkCircled as QuestionMarkCircledIcon } from 'svelte-radix';
 	import CreateForm from './create-form.svelte';
 
 	export let data;
-
-	const dateFmt = createDateFormatter({ dateStyle: 'medium', timeStyle: undefined });
 
 	let createDialogOpen = false;
 
@@ -34,35 +32,35 @@
 		class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 lg:max-w-5xl"
 	>
 		<div class="flex justify-between items-center">
-			<Header1>Occupants</Header1>
-			<Button on:click={() => (createDialogOpen = true)}>Create</Button>
+			<Header1>Subjekty</Header1>
+			<Button on:click={() => (createDialogOpen = true)}>Přidat</Button>
 		</div>
 		<Card.Root>
 			<Card.Content class="pt-6">
 				{#if data.occupants.length === 0}
 					<p class="text-muted-foreground">
-						No occupants yet. Press <i>Create</i> to add the first one.
+						Žádné subjekty nebyly nalezeny. Klikněte na tlačítko <i>Přidat</i> pro vytvoření prvního.
 					</p>
 				{:else}
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head class="lg:w-1/3">Name</Table.Head>
-								<Table.Head>Area</Table.Head>
-								<Table.Head>Charged based on area</Table.Head>
+								<Table.Head class="lg:w-1/3">Název</Table.Head>
+								<Table.Head>Výměra</Table.Head>
+								<Table.Head>Energie účtované dle výměry</Table.Head>
 								<Table.Head class="flex gap-1 items-center">
-									<span>Fixed heating cost share</span>
+									<span>Podíl na fixním nákladu</span>
 									<Tooltip.Root openDelay={500}>
 										<Tooltip.Trigger>
 											<QuestionMarkCircledIcon class="w-4 h-4" />
 										</Tooltip.Trigger>
 										<Tooltip.Content>
-											Defines if and how much does the occupant contribute to the recurring fixed
-											heating cost.
+											Definuje, jestli a jak moc přispívá subjekt k opakovanému fixnímu nákladu.
+											Opakovaný fixní náklad se týká pouze tepelné energie.
 										</Tooltip.Content>
 									</Tooltip.Root>
 								</Table.Head>
-								<Table.Head class="w-[100px]">Created at</Table.Head>
+								<Table.Head class="w-[100px]">Přidán</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
@@ -76,7 +74,7 @@
 										{occupant.name}
 									</Table.Cell>
 									<Table.Cell>
-										{$numberFmt.format(occupant.squareMeters)}&nbsp;m²
+										{numberFmt(occupant.squareMeters)}&nbsp;m²
 									</Table.Cell>
 									<Table.Cell class="flex gap-1">
 										{#if occupant.chargedUnmeasuredElectricity}
@@ -89,17 +87,19 @@
 											<EnergyTypeIcon class="w-4 h-4" energyType="water" />
 										{/if}
 										{#if isNotChargedForUnmeasuredEnergy(occupant)}
-											<span class="text-muted-foreground">None</span>
+											<span class="text-muted-foreground">-</span>
 										{/if}
 									</Table.Cell>
 									<Table.Cell>
 										{#if occupant.heatingFixedCostShare !== null}
-											{$numberFmt.format(occupant.heatingFixedCostShare)}
+											{numberFmt(occupant.heatingFixedCostShare)}
 										{:else}
-											<span class="text-muted-foreground">None</span>
+											<span class="text-muted-foreground">-</span>
 										{/if}
 									</Table.Cell>
-									<Table.Cell>{$dateFmt.format(occupant.created)}</Table.Cell>
+									<Table.Cell>
+										{dateFmt(occupant.created, { dateStyle: 'medium', timeStyle: undefined })}
+									</Table.Cell>
 								</Table.Row>
 							{/each}
 						</Table.Body>

@@ -15,7 +15,7 @@
 		>
 			<a class="flex items-center gap-2 text-lg font-semibold md:text-base" href="/">
 				<Package class="w-6 h-6" />
-				<span class="sr-only">Oliera Consumptions Logo</span>
+				<span class="sr-only">Spotřeby Oliera - Logo</span>
 			</a>
 			{#each data.navLinks as navLink (navLink.name)}
 				{@const active = navLink.href === data.activeHref}

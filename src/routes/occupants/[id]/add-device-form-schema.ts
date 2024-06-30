@@ -1,7 +1,6 @@
-import { disjunctionListFmt } from '$lib/i18n/stores';
+import { listFmt } from '$lib/i18n/helpers';
 import { energyTypes, labelsByEnergyType } from '$lib/models/common';
 import { selectOccupantSchema } from '$lib/models/occupant';
-import { get } from 'svelte/store';
 import { z } from 'zod';
 
 const energyTypeLabels = Object.values(labelsByEnergyType).map((x) => x.toLocaleLowerCase());
@@ -20,7 +19,7 @@ export const addDeviceFormSchema = z.object({
 	energyType: z.enum(energyTypes, {
 		// FIXME: This doesn't really work for some reason
 		errorMap: () => ({
-			message: `Energy type has to be one of: ${get(disjunctionListFmt).format(energyTypeLabels)}`
+			message: `Energy type has to be one of: ${listFmt(energyTypeLabels, { type: 'disjunction' })}`
 		})
 	})
 });

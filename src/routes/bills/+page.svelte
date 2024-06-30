@@ -4,8 +4,8 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
-	import { currencyFmt, dateFmt } from '$lib/i18n/stores';
-	import type { EnergyType } from '$lib/models/common.js';
+	import { currencyFmt, dateFmt } from '$lib/i18n/helpers';
+	import type { EnergyType } from '$lib/models/common';
 
 	export let data;
 
@@ -58,27 +58,27 @@
 									on:click={() => goto(`/bills/${billingPeriod.id}`)}
 								>
 									<Table.Cell class="font-medium">
-										{$dateFmt.format(billingPeriod.startDate)}
+										{dateFmt(billingPeriod.startDate)}
 									</Table.Cell>
 									<Table.Cell class="font-medium">
-										{$dateFmt.format(billingPeriod.endDate)}
+										{dateFmt(billingPeriod.endDate)}
 									</Table.Cell>
 									<Table.Cell>
 										{@const totalElectricity = getTotalCost(billingPeriod, 'electricity')}
 										{#if totalElectricity !== null}
-											{$currencyFmt.format(totalElectricity)}
+											{currencyFmt(totalElectricity)}
 										{/if}
 									</Table.Cell>
 									<Table.Cell>
 										{@const totalWater = getTotalCost(billingPeriod, 'water')}
 										{#if totalWater !== null}
-											{$currencyFmt.format(totalWater)}
+											{currencyFmt(totalWater)}
 										{/if}
 									</Table.Cell>
 									<Table.Cell>
 										{@const totalHeating = getTotalCost(billingPeriod, 'heating')}
 										{#if totalHeating !== null}
-											{$currencyFmt.format(totalHeating)}
+											{currencyFmt(totalHeating)}
 										{/if}
 									</Table.Cell>
 								</Table.Row>
