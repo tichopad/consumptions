@@ -1,9 +1,9 @@
 import {
 	insertMeasuringDeviceSchema,
-	labelsByEnergyType,
 	measuringDevices,
 	occupants,
-	selectOccupantSchema
+	selectOccupantSchema,
+	type EnergyType
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
 import { isFailedForeignKeyConstraint } from '$lib/server/db/helpers';
@@ -31,7 +31,7 @@ export const load: Load = async ({ params }) => {
 	});
 
 	if (occupant === undefined) {
-		error(404, 'Occupant not found');
+		error(404, 'Subjekt nenalezen');
 	}
 
 	return {
@@ -63,15 +63,16 @@ export const actions: Actions = {
 			.returning();
 
 		if (updatedOccupant === undefined) {
-			return fail(500, { form, message: 'Failed to update occupant in database' });
+			return fail(500, { form, message: 'Nepodařilo se aktualizovat subjekt v databázi' });
 		}
 
-		return message(form, `${updatedOccupant.name} updated.`);
+		return message(form, `Subjekt ${updatedOccupant.name} byl aktualizován.`);
 	},
 	/**
 	 * Handles measuring device creation
 	 */
 	createMeasuringDevice: async (event) => {
+		// FIXME: not selecting and EnergyType in the form and then selecting it again fails validation for some reason
 		const form = await superValidate(event, zod(insertMeasuringDeviceSchema));
 
 		if (!form.valid) return fail(400, { form });
@@ -86,12 +87,18 @@ export const actions: Actions = {
 		const [newDevice] = insertDeviceResult;
 
 		if (newDevice === undefined) {
-			return fail(500, { form, message: 'Failed to insert device to database' });
+			return fail(500, { form, message: 'Nepodařilo se vložit měřící zařízení do databáze' });
 		}
+
+		const inflectedLowerCaseEnergyTypeLabels: Record<EnergyType, string> = {
+			electricity: 'elektřinu',
+			water: 'vodu',
+			heating: 'teplo'
+		};
 
 		return message(
 			form,
-			`New ${labelsByEnergyType[newDevice.energyType].toLocaleLowerCase()} measuring device created.`
+			`Nové měřící zařízení pro ${inflectedLowerCaseEnergyTypeLabels[newDevice.energyType]} bylo vytvořeno.`
 		);
 	},
 	/**
@@ -109,10 +116,10 @@ export const actions: Actions = {
 			.returning();
 
 		if (device === undefined) {
-			return fail(500, { form, message: 'Failed to update device in database' });
+			return fail(500, { form, message: 'Nepodařilo se aktualizovat měřící zařízení v databázi' });
 		}
 
-		return message(form, `Measuring device ${device.name} updated.`);
+		return message(form, `Měřící zařízení ${device.name} bylo aktualizováno.`);
 	},
 	/**
 	 * Handles deleting measuring device
@@ -128,7 +135,7 @@ export const actions: Actions = {
 		});
 
 		if (device === undefined) {
-			return fail(404, { form, message: 'Device not found' });
+			return fail(404, { form, message: 'Měřící zařízení nenalezeno' });
 		}
 
 		// Occupant update operation that happens after the device is removed
@@ -142,14 +149,14 @@ export const actions: Actions = {
 		};
 
 		try {
-			// Soft-deleting is the way to go, but let's first try hard delete to safe storage
+			// Soft-deleting is the way to go, but let's first try hard delete to save on storage
 			const deleteDevice = db
 				.delete(measuringDevices)
 				.where(eq(measuringDevices.id, form.data.deviceId));
 			await db.batch([deleteDevice, touchOccupant()]);
 		} catch (error) {
 			console.log(error);
-			// The device has live relations, so we soft-delete instead
+			// If we get here, it means the device has live relations, so we soft-delete instead
 			if (isFailedForeignKeyConstraint(error)) {
 				const softDeleteDevice = db
 					.update(measuringDevices)
@@ -159,6 +166,6 @@ export const actions: Actions = {
 			}
 		}
 
-		return message(form, `Measuring device ${form.data.name} deleted.`);
+		return message(form, `Měřící zařízení ${form.data.name} bylo odstraněno.`);
 	}
 };

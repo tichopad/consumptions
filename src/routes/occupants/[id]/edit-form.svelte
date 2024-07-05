@@ -3,14 +3,13 @@
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
-	import { labelsByEnergyType } from '$lib/models/common';
-	import type { Occupant } from '$lib/models/occupant';
+	import { energyTypes, labelsByEnergyType } from '$lib/models/common';
 	import { toast } from 'svelte-sonner';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms/client';
 	import { createOccupantFormSchema } from '../create-edit-form-schema';
+	import { capitalize } from '$lib/utils';
 
-	export let occupant: Occupant;
 	export let data: SuperValidated<Infer<typeof createOccupantFormSchema>>;
 
 	const editForm = superForm(data, {
@@ -19,9 +18,9 @@
 		invalidateAll: 'force',
 		onUpdated(event) {
 			if (event.form.valid) {
-				toast.success(event.form.message ?? 'Occupant updated.');
+				toast.success(event.form.message ?? `Subjekt ${event.form.data.name} byl aktualizován.`);
 			} else {
-				toast.error(`Failed to update ${occupant.name}.`);
+				toast.error(`Nepodařilo se aktualizovat subjekt ${event.form.data.name}.`);
 			}
 		},
 		onError({ result }) {
@@ -39,7 +38,7 @@
 		<!-- Name -->
 		<Form.Field form={editForm} name="name">
 			<Form.Control let:attrs>
-				<Form.Label>Name</Form.Label>
+				<Form.Label>Název</Form.Label>
 				<Input {...attrs} bind:value={$formData.name} />
 			</Form.Control>
 			<Form.FieldErrors />
@@ -48,16 +47,16 @@
 			<!-- Area -->
 			<Form.Field form={editForm} name="squareMeters" class="flex-1">
 				<Form.Control let:attrs>
-					<Form.Label>Area (m²)</Form.Label>
+					<Form.Label>Výměra (m²)</Form.Label>
 					<Input {...attrs} type="number" step="0.001" bind:value={$formData.squareMeters} />
 				</Form.Control>
-				<Form.Description>The area that's currently in use by the occupant.</Form.Description>
+				<Form.Description>Aktuální výměra užívaná subjektem.</Form.Description>
 				<Form.FieldErrors />
 			</Form.Field>
 			<!-- Fixed heating cost share -->
 			<Form.Field form={editForm} name="heatingFixedCostShare" class="flex-1">
 				<Form.Control let:attrs>
-					<Form.Label>Fixed heating cost share</Form.Label>
+					<Form.Label>Podíl na fixním nákladu tepla</Form.Label>
 					<Input
 						{...attrs}
 						type="number"
@@ -66,7 +65,7 @@
 					/>
 				</Form.Control>
 				<Form.Description>
-					Defines if and how much does the occupant contribute to the recurring fixed heating cost.
+					Definuje, jestli a jakým podílem přispívá subjekt k opakovanému fixnímu nákladu tepla.
 				</Form.Description>
 				<Form.FieldErrors />
 			</Form.Field>
@@ -74,57 +73,37 @@
 	</div>
 	<fieldset class="py-2">
 		<div class="pb-4">
-			<legend class="font-medium leading-none text-base py-2">Consumption charged by area</legend>
+			<legend class="font-medium leading-none text-base py-2">Spotřeba na základě výměry</legend>
 			<p class="text-[0.8rem] text-muted-foreground">
-				Select which energy consumption is charged based on occupant's area.
+				Vyberte, které spotřeby jsou účtovány na základě výměry subjektu.
 			</p>
 		</div>
 		<div class="py-2">
-			<!-- Electricity -->
-			<Form.Field form={editForm} name="chargedUnmeasuredElectricity">
-				<div class="flex flex-row items-start space-x-3">
-					<Form.Control let:attrs>
-						<Checkbox {...attrs} bind:checked={$formData.chargedUnmeasuredElectricity} />
-						<Form.Label class="flex gap-1 items-center font-normal">
-							<EnergyTypeIcon class="w-4 h-4" energyType="electricity" withTooltip={false} />
-							{labelsByEnergyType['electricity']}
-						</Form.Label>
-						<input name={attrs.name} value={$formData.chargedUnmeasuredElectricity} hidden />
-					</Form.Control>
-				</div>
-				<Form.FieldErrors />
-			</Form.Field>
-			<!-- Heating -->
-			<Form.Field form={editForm} name="chargedUnmeasuredHeating">
-				<div class="flex flex-row items-start space-x-3">
-					<Form.Control let:attrs>
-						<Checkbox {...attrs} bind:checked={$formData.chargedUnmeasuredHeating} />
-						<Form.Label class="flex gap-1 items-center font-normal">
-							<EnergyTypeIcon class="w-4 h-4" energyType="heating" withTooltip={false} />
-							{labelsByEnergyType['heating']}
-						</Form.Label>
-						<input name={attrs.name} value={$formData.chargedUnmeasuredHeating} hidden />
-					</Form.Control>
-				</div>
-				<Form.FieldErrors />
-			</Form.Field>
-			<!-- Water -->
-			<Form.Field form={editForm} name="chargedUnmeasuredWater">
-				<div class="flex flex-row items-start space-x-3">
-					<Form.Control let:attrs>
-						<Checkbox {...attrs} bind:checked={$formData.chargedUnmeasuredWater} />
-						<Form.Label class="flex gap-1 items-center font-normal">
-							<EnergyTypeIcon class="w-4 h-4" energyType="water" withTooltip={false} />
-							{labelsByEnergyType['water']}
-						</Form.Label>
-						<input name={attrs.name} value={$formData.chargedUnmeasuredWater} hidden />
-					</Form.Control>
-				</div>
-				<Form.FieldErrors />
-			</Form.Field>
+			{#each energyTypes as energyType}
+				<Form.Field form={editForm} name={`chargedUnmeasured${capitalize(energyType)}`}>
+					<div class="flex flex-row items-start space-x-3">
+						<Form.Control let:attrs>
+							<Checkbox
+								{...attrs}
+								bind:checked={$formData[`chargedUnmeasured${capitalize(energyType)}`]}
+							/>
+							<Form.Label class="flex gap-1 items-center font-normal">
+								<EnergyTypeIcon class="w-4 h-4" {energyType} withTooltip={false} />
+								{labelsByEnergyType[energyType]}
+							</Form.Label>
+							<input
+								name={attrs.name}
+								value={$formData[`chargedUnmeasured${capitalize(energyType)}`]}
+								hidden
+							/>
+						</Form.Control>
+					</div>
+					<Form.FieldErrors />
+				</Form.Field>
+			{/each}
 		</div>
 	</fieldset>
 	<Form.Button disabled={$delayed || !isTainted($tainted)} class="mt-1">
-		{$delayed ? 'Saving ...' : 'Save'}
+		{$delayed ? 'Ukládám ...' : 'Uložit'}
 	</Form.Button>
 </form>

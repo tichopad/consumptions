@@ -30,29 +30,28 @@ export const createOccupantFormSchema = z.object({
 		coerce: true,
 		// TODO:
 		invalid_type_error:
-			'Whether the occupant is charged for electricity consumption based on their area has to be specified',
-		required_error: 'Has to either be true or false'
+			'Musí být zadáno, zda je subjektu účtována spotřeba elektřiny na základě jeho výměry',
+		required_error: 'Tato hodnota může být pouze ano nebo ne'
 	}),
 	chargedUnmeasuredWater: z.boolean({
 		coerce: true,
 		invalid_type_error:
-			'Whether the occupant is charged for water consumption based on their area has to be specified',
-		required_error: 'Has to either be true or false'
+			'Musí být zadáno, zda je subjektu účtována spotřeba vody na základě jeho výměry',
+		required_error: 'Tato hodnota může být pouze ano nebo ne'
 	}),
 	chargedUnmeasuredHeating: z.boolean({
 		coerce: true,
 		invalid_type_error:
-			'Whether the occupant is charged for heating consumption based on their area has to be specified',
-		required_error: 'Has to either be true or false'
+			'Musí být zadáno, zda je subjektu účtována spotřeba tepla na základě jeho výměry',
+		required_error: 'Tato hodnota může být pouze ano nebo ne'
 	}),
 	heatingFixedCostShare: z.preprocess(
 		(value) => (isEmptyStringTrimmed(value) || isNullable(value) ? null : Number(value)),
 		z
 			.number({
-				invalid_type_error: 'The heating fixed cost share coefficient has to be a number'
+				invalid_type_error: 'Hodnota podílu na fixním nákladu tepla musí být číslo'
 			})
-			.gt(0, 'Fixed heating cost share has to be greater than 0')
-			.max(781, `Fixed heating cost share cannot be greater than ${numberFmt(781)}`)
+			.gt(0, 'Podíl na fixním nákladu tepla musí být větší než 0')
 			.transform((value) => new BigNumber(value).decimalPlaces(3).toNumber())
 			.nullable()
 			.optional()

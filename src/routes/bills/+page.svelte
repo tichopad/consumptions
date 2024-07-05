@@ -29,24 +29,25 @@
 		class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 lg:max-w-5xl"
 	>
 		<div class="flex justify-between items-center">
-			<Header1>Bills</Header1><Button href="/bills/create">Create</Button>
+			<Header1>Vyúčtování</Header1><Button href="/bills/create">Vytvořit</Button>
 		</div>
 		<Card.Root>
 			<Card.Content class="pt-6">
 				{#if data.allBillingPeriods.length === 0}
 					<p class="text-muted-foreground">
-						No bills yet. Press <i>Create</i> to add the first one.
+						Zatím nebyly vytvořeny žádná vyúčtování. Stiskněte na tlačítko <i>Vytvořit</i> pro přidání
+						prvního.
 					</p>
 				{:else}
 					<Table.Root>
 						<!-- Header -->
 						<Table.Header>
 							<Table.Row>
-								<Table.Head class="w-[200px]">From</Table.Head>
-								<Table.Head class="w-[200px]">To</Table.Head>
-								<Table.Head>Total electricity cost</Table.Head>
-								<Table.Head>Total heating cost</Table.Head>
-								<Table.Head>Total water cost</Table.Head>
+								<Table.Head class="w-[200px]">Od</Table.Head>
+								<Table.Head class="w-[200px]">Do</Table.Head>
+								<Table.Head>Celkem za elektřinu</Table.Head>
+								<Table.Head>Celkem za teplo</Table.Head>
+								<Table.Head>Celkem za vodu</Table.Head>
 							</Table.Row>
 						</Table.Header>
 
@@ -58,10 +59,10 @@
 									on:click={() => goto(`/bills/${billingPeriod.id}`)}
 								>
 									<Table.Cell class="font-medium">
-										{dateFmt(billingPeriod.startDate)}
+										{dateFmt(billingPeriod.startDate, { dateStyle: 'long', timeStyle: undefined })}
 									</Table.Cell>
 									<Table.Cell class="font-medium">
-										{dateFmt(billingPeriod.endDate)}
+										{dateFmt(billingPeriod.endDate, { dateStyle: 'long', timeStyle: undefined })}
 									</Table.Cell>
 									<Table.Cell>
 										{@const totalElectricity = getTotalCost(billingPeriod, 'electricity')}

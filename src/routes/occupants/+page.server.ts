@@ -23,12 +23,10 @@ export const actions: Actions = {
 
 		if (!form.valid) return fail(400, { form });
 
-		console.log(JSON.stringify(form.data, null, 2));
-
 		const defaultBuilding = await db.query.buildings.findFirst();
 
 		if (defaultBuilding === undefined) {
-			return fail(500, { form, message: 'Building not found' });
+			return fail(500, { form, message: 'Výchozí budova nenalezena' });
 		}
 
 		const occupantInsertValues: OccupantInsert = {
@@ -38,7 +36,7 @@ export const actions: Actions = {
 		const [createdOccupant] = await db.insert(occupants).values(occupantInsertValues).returning();
 
 		if (createdOccupant === undefined) {
-			return fail(500, { form, message: 'Failed to insert occupant to database' });
+			return fail(500, { form, message: 'Nepodařilo se vložit subjekt do databáze' });
 		}
 
 		return redirect(304, `/occupants/${createdOccupant.id}`);

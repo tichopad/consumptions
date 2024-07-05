@@ -12,12 +12,19 @@
 	import * as Table from '$lib/components/ui/table';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import { cn } from '$lib/components/ui/utils';
-	import { listFmt } from '$lib/i18n/helpers.js';
+	import { dateFmt, DEFAULT_LOCALE, listFmt } from '$lib/i18n/helpers';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
 	import type { Occupant } from '$lib/models/occupant';
-	import { DateFormatter, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
+	import {
+		endOfMonth,
+		getLocalTimeZone,
+		startOfMonth,
+		today,
+		type DateValue
+	} from '@internationalized/date';
 	import type { DateRange } from 'bits-ui';
 	import { Calendar as CalendarIcon, Person as PersonIcon } from 'svelte-radix';
+	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 
 	export let data;
@@ -27,7 +34,9 @@
 	const form = superForm(data.form, {
 		dataType: 'json',
 		onError({ result }) {
+			// TODO: use logger
 			console.log(result.error);
+			toast.error(result.error.message ?? 'Nepodařilo se vytvořit vyúčtování.');
 		},
 		onUpdated({ form }) {
 			console.log(form);
@@ -36,14 +45,9 @@
 
 	const { form: formData, enhance } = form;
 
-	const df = new DateFormatter('en-US', {
-		dateStyle: 'medium'
-	});
-
-	// FIXME: start should be the first day of the current month
-	const start = today(getLocalTimeZone());
-	// FIXME: end should be the last day of the current month
-	const end = start.add({ months: 1 });
+	const thisDay = today(getLocalTimeZone());
+	const start = startOfMonth(thisDay);
+	const end = endOfMonth(thisDay);
 
 	let dateRange: DateRange | undefined = { start, end };
 	let startDateValue: DateValue | undefined;
@@ -72,28 +76,32 @@
 
 	const formattedListOfUnmeasuredEnergyTypes = (occupant: OccupantsUnmeasuredInfo): string => {
 		const energyTypes: string[] = [];
-		if (occupant.chargedUnmeasuredElectricity) energyTypes.push('electricity');
-		if (occupant.chargedUnmeasuredHeating) energyTypes.push('heating');
-		if (occupant.chargedUnmeasuredWater) energyTypes.push('water');
-		return listFmt(energyTypes);
+		if (occupant.chargedUnmeasuredElectricity) energyTypes.push('elektřinu');
+		if (occupant.chargedUnmeasuredHeating) energyTypes.push('teplo');
+		if (occupant.chargedUnmeasuredWater) energyTypes.push('vodu');
+		return listFmt(energyTypes, { type: 'conjunction' });
+	};
+
+	const formatPickerDate = (date: DateValue) => {
+		return dateFmt(date.toDate(getLocalTimeZone()), { dateStyle: 'long', timeStyle: undefined });
 	};
 </script>
 
 <main
 	class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10"
 >
-	<Header1>Create new bill</Header1>
+	<Header1>Nové vyúčtování</Header1>
 	<div>
 		<form method="post" action="?/createBill" use:enhance class="flex flex-col gap-2">
-			<h2 class="text-xl py-2 font-medium">Basic</h2>
+			<h2 class="text-xl py-2 font-medium">Souhrnné údaje</h2>
 			<div class="grid lg:grid-cols-2 gap-4">
 				<!-- Bill info -->
 				<fieldset class="rounded-lg border p-4">
 					<!-- Date range -->
-					<legend class="px-1 text-sm font-medium"> Bill info </legend>
+					<legend class="px-1 text-sm font-medium"> Datum </legend>
 					<Form.Field {form} name="dateRange" class="flex flex-col">
 						<Form.Control let:attrs>
-							<Form.Label>Date range</Form.Label>
+							<Form.Label>Období</Form.Label>
 							<Popover.Root openFocus>
 								<Popover.Trigger asChild let:builder>
 									<Button
@@ -107,16 +115,14 @@
 										<CalendarIcon class="mr-2 h-4 w-4" />
 										{#if dateRange && dateRange.start}
 											{#if dateRange.end}
-												{df.format(dateRange.start.toDate(getLocalTimeZone()))} - {df.format(
-													dateRange.end.toDate(getLocalTimeZone())
-												)}
+												{formatPickerDate(dateRange.start)} - {formatPickerDate(dateRange.end)}
 											{:else}
-												{df.format(dateRange.start.toDate(getLocalTimeZone()))}
+												{formatPickerDate(dateRange.start)}
 											{/if}
 										{:else if startDateValue}
-											{df.format(startDateValue.toDate(getLocalTimeZone()))}
+											{formatPickerDate(startDateValue)}
 										{:else}
-											Pick a date
+											Vyberte datum
 										{/if}
 									</Button>
 								</Popover.Trigger>
@@ -124,13 +130,16 @@
 									<RangeCalendar
 										bind:startValue={startDateValue}
 										bind:value={dateRange}
+										locale={DEFAULT_LOCALE}
 										class="rounded-md border shadow"
 										initialFocus
 										weekStartsOn={1}
 									/>
 								</Popover.Content>
 							</Popover.Root>
-							<Form.Description>The time frame this bill applies to</Form.Description>
+							<Form.Description
+								>Časové období, na které se toto vyúčtování vztahuje</Form.Description
+							>
 							<Form.FieldErrors />
 							<input hidden {...attrs} value={$formData.dateRange.start} name="dateRange.start" />
 							<input hidden {...attrs} value={$formData.dateRange.end} name="dateRange.end" />
@@ -139,16 +148,16 @@
 				</fieldset>
 				<!-- Energies -->
 				<fieldset class="rounded-lg border p-4">
-					<legend class="px-1 text-sm font-medium"> Total energy consumption and cost </legend>
+					<legend class="px-1 text-sm font-medium"> Celková spotřeba a náklady </legend>
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head class="w-[100px]">Energy type</Table.Head>
-								<Table.Head class="w-[200px]">Total cost</Table.Head>
-								<Table.Head class="w-[200px]">Fixed cost</Table.Head>
-								<Table.Head class="w-[100px]">Unit</Table.Head>
-								<Table.Head class="w-[200px]">Total consumption</Table.Head>
-								<Table.Head class="w-[100px]">Unit</Table.Head>
+								<Table.Head class="w-[100px]">Typ energie</Table.Head>
+								<Table.Head class="w-[225px]">Celkový náklad</Table.Head>
+								<Table.Head class="w-[200px]">Fixní náklad</Table.Head>
+								<Table.Head class="w-[100px]"><span class="sr-only">Jednotka</span></Table.Head>
+								<Table.Head class="w-[200px]">Spotřeba</Table.Head>
+								<Table.Head class="w-[100px]"><span class="sr-only">Jednotka</span></Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
@@ -175,7 +184,7 @@
 									</Form.Field>
 								</Table.Cell>
 								<Table.Cell><Input type="number" disabled /></Table.Cell>
-								<Table.Cell>CZK</Table.Cell>
+								<Table.Cell>Kč</Table.Cell>
 								<Table.Cell>
 									<Form.Field {form} name="electricityTotalConsumption">
 										<Form.Control let:attrs>
@@ -215,7 +224,7 @@
 									</Form.Field>
 								</Table.Cell>
 								<Table.Cell><Input type="number" disabled /></Table.Cell>
-								<Table.Cell>CZK</Table.Cell>
+								<Table.Cell>Kč</Table.Cell>
 								<Table.Cell>
 									<Form.Field {form} name="waterTotalConsumption">
 										<Form.Control let:attrs>
@@ -268,7 +277,7 @@
 										</Form.Control>
 									</Form.Field>
 								</Table.Cell>
-								<Table.Cell>CZK</Table.Cell>
+								<Table.Cell>Kč</Table.Cell>
 								<Table.Cell>
 									<Form.Field {form} name="heatingTotalConsumption">
 										<Form.Control let:attrs>
@@ -292,7 +301,7 @@
 
 			<!-- Occupants -->
 			<Form.Fieldset {form} class="grid lg:grid-cols-2 gap-4" name="occupants">
-				<Form.Legend class="text-xl py-2 font-medium">Occupants</Form.Legend>
+				<Form.Legend class="text-xl py-2 font-medium">Subjekty</Form.Legend>
 				<!-- New occupants -->
 				{#each $formData.occupants as occupant, i (occupant.id)}
 					<Card.Root>
@@ -303,27 +312,25 @@
 							</Card.Title>
 							<Card.Description>
 								<div class="grid gap-2 pt-2">
-									<div class="font-semibold">Occupant Information</div>
+									<div class="font-semibold">Základní údaje</div>
 									<dl class="grid gap-2">
 										<div class="flex items-center justify-between">
-											<dt class="text-muted-foreground">Area</dt>
+											<dt class="text-muted-foreground">Výměra</dt>
 											<dd>{occupant.squareMeters} m²</dd>
 										</div>
 										<div class="flex items-center justify-between">
 											{#if isChargedForUnmeasuredEnergy(occupant)}
 												<dt class="text-muted-foreground">
-													Is charged for {formattedListOfUnmeasuredEnergyTypes(occupant)} based on area.
+													Je účtováno za {formattedListOfUnmeasuredEnergyTypes(occupant)} podle výměry.
 												</dt>
 											{:else}
-												<dt class="text-muted-foreground">
-													Is not charged for any unmeasured consumption.
-												</dt>
+												<dt class="text-muted-foreground">Není účtováno podle výměry.</dt>
 											{/if}
 										</div>
 										{#if occupant.heatingFixedCostShare}
 											<div class="flex items-center justify-between">
 												<dt class="text-muted-foreground">
-													Participates in fixed heating costs with a share
+													Podílí se na fixním nákladu za teplo s poměrem
 												</dt>
 												<dd>{occupant.heatingFixedCostShare.toFixed(1)}</dd>
 											</div>
@@ -336,14 +343,16 @@
 							<!-- Measuring devices -->
 							{#if occupant.measuringDevices.length > 0}
 								<Form.Fieldset {form} name="occupants[{i}].measuringDevices">
-									<Form.Legend class="text-sm font-medium">Measuring devices</Form.Legend>
+									<Form.Legend class="text-sm font-medium">Měřící zařízení</Form.Legend>
 									<Table.Root>
 										<Table.Header>
 											<Table.Row>
-												<Table.Head class="w-[100px]">Energy type</Table.Head>
-												<Table.Head>Name</Table.Head>
-												<Table.Head class="w-[200px]">Consumption</Table.Head>
-												<Table.Head class="w-[100px]">Unit</Table.Head>
+												<Table.Head class="w-[100px]">Typ energie</Table.Head>
+												<Table.Head>Název</Table.Head>
+												<Table.Head class="w-[185px]">Spotřeba</Table.Head>
+												<Table.Head class="w-[100px]">
+													<span class="sr-only">Jednotka</span>
+												</Table.Head>
 											</Table.Row>
 										</Table.Header>
 										<Table.Body>
@@ -388,7 +397,7 @@
 					</Card.Root>
 				{/each}
 			</Form.Fieldset>
-			<Form.Button class="sm:max-w-20">Save</Form.Button>
+			<Form.Button class="sm:max-w-20">Vytvořit</Form.Button>
 		</form>
 	</div>
 </main>

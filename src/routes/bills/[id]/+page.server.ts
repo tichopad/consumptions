@@ -9,7 +9,7 @@ export const load: Load = async ({ params }) => {
 	const parsedId = selectBillingPeriodSchema.shape.id.safeParse(params.id);
 
 	if (!parsedId.success) {
-		error(400, 'Missing or invalid billing period ID.');
+		error(400, 'Chybějící nebo neplatné ID vyúčtování.');
 	}
 
 	const billingPeriod = await db.query.billingPeriods.findFirst({
@@ -27,7 +27,7 @@ export const load: Load = async ({ params }) => {
 	});
 
 	if (!billingPeriod) {
-		error(404, 'Billing period not found.');
+		error(404, 'Vyúčtování nenalezeno.');
 	}
 
 	const occupantsIds = billingPeriod.energyBills.map((bill) => bill.occupantId).filter(Boolean);

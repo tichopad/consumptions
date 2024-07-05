@@ -12,14 +12,14 @@ export const addDeviceFormSchema = z.object({
 	occupantId: selectOccupantSchema.shape.id,
 	name: z
 		.string()
-		.min(1, 'Device name has to be at least 1 character long')
-		.max(280, 'Name cannot be more than 280 characters long')
+		.min(1, 'Název měřícího zařízení musí být alespoň 1 znak dlouhý')
+		.max(280, 'Název měřícího zařízení nesmí být delší než 280 znaků')
 		.trim()
 		.default(''),
 	energyType: z.enum(energyTypes, {
 		// FIXME: This doesn't really work for some reason
 		errorMap: () => ({
-			message: `Energy type has to be one of: ${listFmt(energyTypeLabels, { type: 'disjunction' })}`
+			message: `Energie musí být buď ${listFmt(energyTypeLabels, { type: 'disjunction' })}.`
 		})
 	})
 });

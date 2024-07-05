@@ -26,9 +26,9 @@
 				if (form.posted) {
 					open = false;
 				}
-				toast.success(form.message ?? 'Measuring device updated.');
+				toast.success(form.message ?? `Měřící zařízení ${form.data.name} bylo aktualizováno.`);
 			} else {
-				toast.error(`Failed to update measuring device for ${occupant.name}.`);
+				toast.error(`Nepodařilo se aktualizovat měřící zařízení pro subjekt ${occupant.name}.`);
 			}
 		},
 		onError({ result }) {
@@ -51,20 +51,22 @@
 		<form method="post" action="?/editMeasuringDevice" use:enhance>
 			<input type="hidden" name="id" bind:value={$formData.id} />
 			<Dialog.Header>
-				<Dialog.Title>Edit measuring device</Dialog.Title>
-				<Dialog.Description>Edit any value and click save when you're done.</Dialog.Description>
+				<Dialog.Title>Přejmenovat měřící zařízení</Dialog.Title>
+				<Dialog.Description>
+					Změňte název měřícího zařízení a klikněte na tlačítko Uložit, pokud je vše hotovo.
+				</Dialog.Description>
 			</Dialog.Header>
 			<div class="py-4">
 				<Form.Field {form} name="name">
 					<Form.Control let:attrs>
-						<Form.Label>Name</Form.Label>
+						<Form.Label>Název</Form.Label>
 						<Input {...attrs} class="col-span-3" bind:value={$formData.name} />
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
 			</div>
 			<Dialog.Footer>
-				<Form.Button disabled={$delayed}>{$delayed ? 'Saving ...' : 'Save'}</Form.Button>
+				<Form.Button disabled={$delayed}>{$delayed ? 'Ukládám ...' : 'Uložit'}</Form.Button>
 			</Dialog.Footer>
 		</form>
 	</Dialog.Content>

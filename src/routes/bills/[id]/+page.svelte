@@ -29,26 +29,25 @@
 
 <Page>
 	<section slot="header">
-		<Header2>Billing period</Header2>
+		<Header2>Vyúčtování</Header2>
 		<Header1>
-			{dateFmt(data.billingPeriod.startDate)}
+			{dateFmt(data.billingPeriod.startDate, { dateStyle: 'long', timeStyle: undefined })}
 			-
-			{dateFmt(data.billingPeriod.endDate)}
+			{dateFmt(data.billingPeriod.endDate, { dateStyle: 'long', timeStyle: undefined })}
 		</Header1>
 	</section>
-	<!-- FIXME: showing updated timestamp for non-updateable entities doesn't make sense -->
 	<DateMetadata created={data.billingPeriod.created} />
 	{#if data.building !== null}
 		<Card.Root>
 			<Card.Header>
-				<Card.Title><h3>Building</h3></Card.Title>
-				<Card.Description>Basic information about the building.</Card.Description>
+				<Card.Title><h3>Budova</h3></Card.Title>
+				<Card.Description>Souhrnné informace o budově.</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<Table.Root>
 					<Table.Body>
 						<Table.Row>
-							<Table.Head class="w-[200px]">Total occupied area</Table.Head>
+							<Table.Head class="w-[200px]">Celková výměra</Table.Head>
 							<Table.Cell>
 								{numberFmt(data.occupiedArea)}&nbsp;m²
 							</Table.Cell>
@@ -66,21 +65,21 @@
 	{/if}
 	<Card.Root>
 		<Card.Header>
-			<Card.Title><h3>Total cost and consumption</h3></Card.Title>
+			<Card.Title><h3>Celkový náklad a spotřeba</h3></Card.Title>
 			<Card.Description>
-				Cost and consumption for all energy types for the entire building.
+				Náklad a spotřeba pro všechny typy energie pro celou budovu.
 			</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>Energy type</Table.Head>
-						<Table.Head>Consumption</Table.Head>
-						<Table.Head>Unit cost</Table.Head>
-						<Table.Head>Cost per area</Table.Head>
-						<Table.Head>Total cost</Table.Head>
-						<Table.Head>Fixed cost</Table.Head>
+						<Table.Head>Typ energie</Table.Head>
+						<Table.Head>Spotřeba</Table.Head>
+						<Table.Head>Jednotková cena</Table.Head>
+						<Table.Head>Cena za m²</Table.Head>
+						<Table.Head>Celkový náklad</Table.Head>
+						<Table.Head>Fixní náklad</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -196,8 +195,8 @@
 	</Card.Root>
 	<Card.Root>
 		<Card.Header>
-			<Card.Title class="flex items-center gap-1"><h3>Occupants</h3></Card.Title>
-			<Card.Description>All occupants participanting in this billing period.</Card.Description>
+			<Card.Title class="flex items-center gap-1"><h3>Subjekty</h3></Card.Title>
+			<Card.Description>Všechny subjekty účtované v tomto období.</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			{#if data.occupantsWithBills.length > 0}
@@ -217,30 +216,27 @@
 								<div class="flex flex-col gap-3">
 									<Card.Root>
 										<Card.Header>
-											<Card.Title><h4>About</h4></Card.Title>
-											<Card.Description>
-												Detailed information about {occupant.name}
-											</Card.Description>
+											<Card.Title><h4>Základní informace</h4></Card.Title>
 										</Card.Header>
 										<Card.Content>
 											<Table.Root>
 												<Table.Body>
 													<Table.Row>
-														<Table.Head class="w-[200px]">Area</Table.Head>
+														<Table.Head class="w-[200px]">Výměra</Table.Head>
 														<Table.Cell>
 															{numberFmt(occupant.squareMeters)}&nbsp;m²
 														</Table.Cell>
 													</Table.Row>
 													{#if occupant.heatingFixedCostShare !== null}
 														<Table.Row>
-															<Table.Head>Heating fixed cost share</Table.Head>
+															<Table.Head>Podíl na fixním nákladu tepla</Table.Head>
 															<Table.Cell>
 																{numberFmt(occupant.heatingFixedCostShare)}
 															</Table.Cell>
 														</Table.Row>
 													{/if}
 													<Table.Row>
-														<Table.Head>Total cost</Table.Head>
+														<Table.Head>Celkem zaplatí</Table.Head>
 														<Table.Cell>
 															{currencyFmt(totalCost)}
 														</Table.Cell>
@@ -252,15 +248,15 @@
 									{#if hasUnmeasuredBills(occupant)}
 										<Card.Root>
 											<Card.Header>
-												<Card.Title><h4>Charged based on area</h4></Card.Title>
+												<Card.Title><h4>Účtováno na základě výměry</h4></Card.Title>
 											</Card.Header>
 											<Card.Content>
 												<Table.Root>
 													<Table.Header>
 														<Table.Row>
-															<Table.Head>Energy type</Table.Head>
-															<Table.Head>Cost per area</Table.Head>
-															<Table.Head>Total cost</Table.Head>
+															<Table.Head>Typ energie</Table.Head>
+															<Table.Head>Cena za m²</Table.Head>
+															<Table.Head>Celkový náklad</Table.Head>
 														</Table.Row>
 													</Table.Header>
 													<Table.Body>
@@ -299,17 +295,17 @@
 									{#if hasMeasuredBills(occupant)}
 										<Card.Root>
 											<Card.Header>
-												<Card.Title><h4>Measured</h4></Card.Title>
+												<Card.Title><h4>Účtováno na základě měřené spotřeby</h4></Card.Title>
 											</Card.Header>
 											<Card.Content>
 												<Table.Root>
 													<Table.Header>
 														<Table.Row>
-															<Table.Head>Energy type</Table.Head>
-															<Table.Head>Consumption</Table.Head>
-															<Table.Head>Unit cost</Table.Head>
-															<Table.Head>Total cost</Table.Head>
-															<Table.Head>Fixed cost</Table.Head>
+															<Table.Head>Typ energie</Table.Head>
+															<Table.Head>Spotřeba</Table.Head>
+															<Table.Head>Jednotková cena</Table.Head>
+															<Table.Head>Celkový náklad</Table.Head>
+															<Table.Head>Fixní náklad</Table.Head>
 														</Table.Row>
 													</Table.Header>
 													<Table.Body>
@@ -363,9 +359,7 @@
 					</Accordion.Root>
 				{/each}
 			{:else}
-				<p class="text-sm text-muted-foreground">
-					There were no occupants participating in this billing period.
-				</p>
+				<p class="text-sm text-muted-foreground">V tomto období nebyly účtovány žádné subjekty.</p>
 			{/if}
 		</Card.Content>
 	</Card.Root></Page

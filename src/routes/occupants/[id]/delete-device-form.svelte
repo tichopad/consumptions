@@ -22,9 +22,9 @@
 				if (form.posted) {
 					open = false;
 				}
-				toast.success(form.message ?? 'Measuring device deleted.');
+				toast.success(form.message ?? 'Měřící zařízení bylo odebráno.');
 			} else {
-				toast.error(`Failed to deleting measuring device.`);
+				toast.error('Nepodařilo se odebrat měřící zařízení.');
 			}
 		},
 		onError({ result }) {
@@ -49,14 +49,14 @@
 				<input type="hidden" name="deviceId" bind:value={$formData.deviceId} />
 				<input type="hidden" name="name" bind:value={$formData.name} />
 				<Dialog.Header>
-					<Dialog.Title>Delete measuring device</Dialog.Title>
+					<Dialog.Title>Odstranit měřící zařízení</Dialog.Title>
 					<Dialog.Description class="py-2">
-						Are you sure you want to delete <b>{device.name}</b>?
+						Určitě chcete odstranit měřící zařízení <b>{device.name}</b>?
 					</Dialog.Description>
 				</Dialog.Header>
 				<Dialog.Footer class="pt-3">
-					<Button type="button" variant="outline" on:click={() => (open = false)}>Cancel</Button>
-					<Form.Button disabled={$delayed}>{$delayed ? 'Deleting ...' : 'Delete'}</Form.Button>
+					<Button type="button" variant="outline" on:click={() => (open = false)}>Ne</Button>
+					<Form.Button disabled={$delayed}>{$delayed ? 'Odstraňuji ...' : 'Ano'}</Form.Button>
 				</Dialog.Footer>
 			</form>
 		</Dialog.Content>

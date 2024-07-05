@@ -1,5 +1,4 @@
-// Default locale
-const LOCALE = 'cs-CZ';
+export const DEFAULT_LOCALE = 'cs-CZ';
 
 // Shallowly merges options with default options
 function mergeOptions<TOptions>(options: TOptions | undefined, defaultOptions: TOptions): TOptions {
@@ -12,7 +11,7 @@ export function numberFmt(value: number, options?: Intl.NumberFormatOptions) {
 		maximumFractionDigits: 2
 	};
 
-	return new Intl.NumberFormat(LOCALE, mergeOptions(options, defaultOptions)).format(value);
+	return new Intl.NumberFormat(DEFAULT_LOCALE, mergeOptions(options, defaultOptions)).format(value);
 }
 
 /** Currency formatter */
@@ -30,7 +29,9 @@ export function dateFmt(value: Date | number, options?: Intl.DateTimeFormatOptio
 		timeStyle: 'short'
 	};
 
-	return new Intl.DateTimeFormat(LOCALE, mergeOptions(options, defaultOptions)).format(value);
+	return new Intl.DateTimeFormat(DEFAULT_LOCALE, mergeOptions(options, defaultOptions)).format(
+		value
+	);
 }
 
 /** List formatter */
@@ -40,5 +41,5 @@ export function listFmt(value: Iterable<string>, options?: Intl.ListFormatOption
 		type: 'conjunction'
 	};
 
-	return new Intl.ListFormat(LOCALE, mergeOptions(options, defaultOptions)).format(value);
+	return new Intl.ListFormat(DEFAULT_LOCALE, mergeOptions(options, defaultOptions)).format(value);
 }

@@ -63,41 +63,41 @@
 
 <Page>
 	<section slot="header">
-		<Header2>Occupant</Header2>
+		<Header2>Subjekt</Header2>
 		<Header1>{data.occupant.name}</Header1>
 	</section>
 	<DateMetadata created={data.occupant.created} updated={data.occupant.updated} />
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>About</Card.Title>
-			<Card.Description>Basic information about the occupant.</Card.Description>
+			<Card.Title>Základní informace</Card.Title>
 		</Card.Header>
 		<Card.Content>
-			<EditForm data={data.editOccupantForm} occupant={data.occupant} />
+			<EditForm data={data.editOccupantForm} />
 		</Card.Content>
 	</Card.Root>
 	<Card.Root>
 		<Card.Header>
 			<Card.Title class="flex justify-between items-center -my-2">
-				<span>Measuring devices</span>
-				<Button on:click={() => (isAddDeviceDialogOpen = true)}>Add device</Button>
+				<span>Měřící zařízení</span>
+				<Button on:click={() => (isAddDeviceDialogOpen = true)}>Přidat zařízení</Button>
 			</Card.Title>
-			<Card.Description>List of all the occupant's measuring devices</Card.Description>
+			<Card.Description>Seznam všech aktivních měřících zařízení subjektu</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			{#if data.occupant.measuringDevices.length === 0}
 				<p class="text-sm text-muted-foreground">
-					This occupant has no devices yet. Click Add device to add a new one.
+					Tento subjekt zatím nemá žádné měřící zařízení. Klikněte na tlačítko Přidat zařízení pro
+					vytvoření nového.
 				</p>
 			{:else}
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head class="w-[125px]">Type</Table.Head>
+							<Table.Head class="w-[125px]">Typ energie</Table.Head>
 							<Table.Head>Name</Table.Head>
-							<Table.Head class="w-[160px]">Created at</Table.Head>
-							<Table.Head class="w-[160px]">Last edited at</Table.Head>
-							<Table.Head class="w-9"><span class="sr-only">Action</span></Table.Head>
+							<Table.Head class="w-[160px]">Vytvořeno</Table.Head>
+							<Table.Head class="w-[160px]">Poslední úprava</Table.Head>
+							<Table.Head class="w-9"><span class="sr-only">Akce</span></Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -120,7 +120,7 @@
 								<Table.Cell>
 									{dateFmt(device.updated, { dateStyle: 'short', timeStyle: 'short' })}
 								</Table.Cell>
-								<Table.Cell title="Delete this device">
+								<Table.Cell title="Odstranit toto zařízení">
 									<Button
 										type="submit"
 										variant="destructive"
