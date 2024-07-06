@@ -8,12 +8,12 @@ export const load: Load = async ({ url }) => {
 		{ name: 'Vyúčtování', href: '/bills' }
 	];
 
-	const isActiveHref = (href: string) => {
-		if (href === '/') return url.pathname === '/';
-		return url.pathname.startsWith(href);
+	const isActiveHref = (navLink: (typeof navLinks)[number]) => {
+		if (navLink.href === '/') return url.pathname === '/';
+		return url.pathname.startsWith(navLink.href);
 	};
 
-	const activeHref = navLinks.find((navLink) => isActiveHref(navLink.href))?.href;
+	const activeHref = navLinks.find(isActiveHref)?.href;
 
 	return {
 		navLinks,

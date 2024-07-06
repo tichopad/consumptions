@@ -12,7 +12,7 @@ export const addDeviceFormSchema = z.object({
 	occupantId: selectOccupantSchema.shape.id,
 	name: z
 		.string()
-		.min(1, 'Název měřícího zařízení musí být alespoň 1 znak dlouhý')
+		.min(1, 'Název měřícího zařízení je povinný')
 		.max(280, 'Název měřícího zařízení nesmí být delší než 280 znaků')
 		.trim()
 		.default(''),
