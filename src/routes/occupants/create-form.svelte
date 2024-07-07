@@ -4,11 +4,13 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
+	import { logger } from '$lib/logger';
 	import { energyTypes, labelsByEnergyType } from '$lib/models/common';
+	import { capitalize } from '$lib/utils';
+	import { toast } from 'svelte-sonner';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms/client';
 	import { createOccupantFormSchema, type CreateOccupantForm } from './create-edit-form-schema';
-	import { capitalize } from '$lib/utils';
 
 	/** Form's data */
 	export let data: SuperValidated<Infer<CreateOccupantForm>>;
@@ -18,12 +20,15 @@
 
 	const form = superForm(data, {
 		validators: zodClient(createOccupantFormSchema),
-		// TODO: remove console log, add toasts
 		onError({ result }) {
-			console.log(result.error);
+			logger.error({ result }, 'Create occupant form error');
+			toast.error(result.error.message);
 		},
 		onUpdated({ form }) {
-			console.log(form);
+			logger.info({ form }, 'Create occupant form updated');
+			if (form.valid) {
+				toast.success(form.message ?? 'Nový subjekt vytvořen.');
+			}
 		}
 	});
 
@@ -88,9 +93,9 @@
 				<!-- Unmeasured energy types -->
 				<fieldset class="pt-2">
 					<div class="pb-4">
-						<legend class="font-medium leading-none text-base py-2"
-							>Energie účtované dle výměry</legend
-						>
+						<legend class="font-medium leading-none text-base py-2">
+							Energie účtované dle výměry
+						</legend>
 						<p class="text-[0.8rem] text-muted-foreground">
 							Vyberte, které energie budou subjektu účtovány dle výměru. Nevybírejte, pokud je
 							subjektu účtována pouze měřená spotřeba.

@@ -1,5 +1,5 @@
 import { listFmt } from '$lib/i18n/helpers';
-import { energyTypes, labelsByEnergyType } from '$lib/models/common';
+import { energyTypes, labelsByEnergyType, type EnergyType } from '$lib/models/common';
 import { selectOccupantSchema } from '$lib/models/occupant';
 import { z } from 'zod';
 
@@ -15,13 +15,15 @@ export const addDeviceFormSchema = z.object({
 		.min(1, 'Název měřícího zařízení je povinný')
 		.max(280, 'Název měřícího zařízení nesmí být delší než 280 znaků')
 		.trim()
-		.default(''),
-	energyType: z.enum(energyTypes, {
-		// FIXME: This doesn't really work for some reason
-		errorMap: () => ({
-			message: `Energie musí být buď ${listFmt(energyTypeLabels, { type: 'disjunction' })}.`
+		.default('Hlavní měřič'),
+	energyType: z
+		.enum(energyTypes, {
+			// This is the only way to set a custom error message with enum fields
+			errorMap: () => ({
+				message: `Typ energie musí být buď ${listFmt(energyTypeLabels, { type: 'disjunction' })}.`
+			})
 		})
-	})
+		.default('' as EnergyType) // Default to unselected
 });
 
 export type AddDeviceForm = typeof addDeviceFormSchema;

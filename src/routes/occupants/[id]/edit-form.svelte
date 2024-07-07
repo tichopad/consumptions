@@ -9,6 +9,7 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms/client';
 	import { createOccupantFormSchema } from '../create-edit-form-schema';
 	import { capitalize } from '$lib/utils';
+	import { logger } from '$lib/logger';
 
 	export let data: SuperValidated<Infer<typeof createOccupantFormSchema>>;
 
@@ -17,13 +18,13 @@
 		// Required in order for the loader data to take precedence over the returned form data
 		invalidateAll: 'force',
 		onUpdated(event) {
+			logger.info({ event }, 'Edit occupant form updated');
 			if (event.form.valid) {
 				toast.success(event.form.message ?? `Subjekt ${event.form.data.name} byl aktualizován.`);
-			} else {
-				toast.error(`Nepodařilo se aktualizovat subjekt ${event.form.data.name}.`);
 			}
 		},
 		onError({ result }) {
+			logger.error({ result }, 'Edit occupant form error');
 			if (result.error.message) {
 				toast.error(result.error.message);
 			}
@@ -73,7 +74,7 @@
 	</div>
 	<fieldset class="py-2">
 		<div class="pb-4">
-			<legend class="font-medium leading-none text-base py-2">Spotřeba na základě výměry</legend>
+			<legend class="font-medium leading-none text-base py-2">Energie účtované dle výměry</legend>
 			<p class="text-[0.8rem] text-muted-foreground">
 				Vyberte, které spotřeby jsou účtovány na základě výměry subjektu.
 			</p>

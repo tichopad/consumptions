@@ -10,13 +10,17 @@
 <div class={cn('text-xs flex flex-col sm:flex-row gap-1 sm:gap-2', $$props.class)}>
 	<ul class="flex gap-1">
 		<li class="font-medium">Vytvořeno&nbsp;-</li>
-		<li class="text-muted-foreground">{dateFmt(created)}</li>
+		<li class="text-muted-foreground">
+			{dateFmt(created, { dateStyle: 'long', timeStyle: 'short' })}
+		</li>
 	</ul>
 	{#if updated !== undefined}
 		<Separator orientation="vertical" class="hidden sm:block" />
 		<ul class="flex gap-1">
 			<li class="font-medium">Poslední úprava&nbsp;-</li>
-			<li class="text-muted-foreground">{dateFmt(updated)}</li>
+			<li class="text-muted-foreground">
+				{dateFmt(updated, { dateStyle: 'long', timeStyle: 'short' })}
+			</li>
 		</ul>
 	{/if}
 </div>

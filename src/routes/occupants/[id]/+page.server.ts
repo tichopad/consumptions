@@ -14,11 +14,16 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { createOccupantFormSchema } from '../create-edit-form-schema';
 import { deleteDeviceFormSchema } from './delete-device-form-schema';
 import { editDeviceFormSchema } from './edit-device-form-schema';
+import { addDeviceFormSchema } from './add-device-form-schema';
+import { logger } from '$lib/logger';
 
 export const load: Load = async ({ params }) => {
 	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
 
-	if (!parsed.success) error(400, 'Invalid id');
+	if (!parsed.success) {
+		logger.error({ parsed }, 'Failed to parse id');
+		error(400, 'Neplatné ID subjektu');
+	}
 
 	const occupant = await db.query.occupants.findFirst({
 		where: eq(occupants.id, parsed.data),
@@ -31,12 +36,14 @@ export const load: Load = async ({ params }) => {
 	});
 
 	if (occupant === undefined) {
+		logger.error({ occupantId: parsed.data }, 'Failed to find occupant');
 		error(404, 'Subjekt nenalezen');
 	}
 
 	return {
 		occupant,
-		insertMeasuringDeviceForm: await superValidate(zod(insertMeasuringDeviceSchema)),
+		// Set `errors: false` to prevent displaying error messages in the initial form load
+		insertMeasuringDeviceForm: await superValidate(zod(addDeviceFormSchema), { errors: false }),
 		editOccupantForm: await superValidate(occupant, zod(createOccupantFormSchema)),
 		editMeasuringDeviceForm: await superValidate(zod(editDeviceFormSchema)),
 		deleteMeasuringDeviceForm: await superValidate(zod(deleteDeviceFormSchema))
@@ -72,10 +79,11 @@ export const actions: Actions = {
 	 * Handles measuring device creation
 	 */
 	createMeasuringDevice: async (event) => {
-		// FIXME: not selecting and EnergyType in the form and then selecting it again fails validation for some reason
 		const form = await superValidate(event, zod(insertMeasuringDeviceSchema));
 
-		if (!form.valid) return fail(400, { form });
+		logger.info({ form }, 'Handling createMeasuringDevice action');
+
+		if (!form.valid) return message(form, 'Údaje měřícího zařízení nebyly správně vyplněny.');
 
 		const insertDevice = db.insert(measuringDevices).values(form.data).returning();
 		const updateOccupant = db
@@ -87,7 +95,7 @@ export const actions: Actions = {
 		const [newDevice] = insertDeviceResult;
 
 		if (newDevice === undefined) {
-			return fail(500, { form, message: 'Nepodařilo se vložit měřící zařízení do databáze' });
+			return error(500, { message: 'Nepodařilo se vložit měřící zařízení do databáze' });
 		}
 
 		const inflectedLowerCaseEnergyTypeLabels: Record<EnergyType, string> = {
@@ -107,7 +115,7 @@ export const actions: Actions = {
 	editMeasuringDevice: async (event) => {
 		const form = await superValidate(event, zod(editDeviceFormSchema));
 
-		if (!form.valid) return fail(400, { form });
+		if (!form.valid) return message(form, 'Údaje měřícího zařízení nebyly správně vyplněny.');
 
 		const [device] = await db
 			.update(measuringDevices)
@@ -116,7 +124,7 @@ export const actions: Actions = {
 			.returning();
 
 		if (device === undefined) {
-			return fail(500, { form, message: 'Nepodařilo se aktualizovat měřící zařízení v databázi' });
+			return error(500, { message: 'Nepodařilo se aktualizovat měřící zařízení v databázi' });
 		}
 
 		return message(form, `Měřící zařízení ${device.name} bylo aktualizováno.`);
@@ -127,7 +135,7 @@ export const actions: Actions = {
 	deleteMeasuringDevice: async (event) => {
 		const form = await superValidate(event, zod(deleteDeviceFormSchema));
 
-		if (!form.valid) return fail(400, { form });
+		if (!form.valid) return message(form, 'Údaje měřícího zařízení nebyly správně vyplněny.');
 
 		// FIXME: Potentially unnecessary database call - refactor later
 		const device = await db.query.measuringDevices.findFirst({
@@ -135,7 +143,7 @@ export const actions: Actions = {
 		});
 
 		if (device === undefined) {
-			return fail(404, { form, message: 'Měřící zařízení nenalezeno' });
+			return error(404, { message: 'Měřící zařízení nenalezeno' });
 		}
 
 		// Occupant update operation that happens after the device is removed
@@ -154,15 +162,24 @@ export const actions: Actions = {
 				.delete(measuringDevices)
 				.where(eq(measuringDevices.id, form.data.deviceId));
 			await db.batch([deleteDevice, touchOccupant()]);
-		} catch (error) {
-			console.log(error);
+		} catch (deletionError) {
+			logger.error(
+				{ deletionError },
+				'Failed to delete measuring device, falling back to soft-delete'
+			);
 			// If we get here, it means the device has live relations, so we soft-delete instead
-			if (isFailedForeignKeyConstraint(error)) {
+			if (isFailedForeignKeyConstraint(deletionError)) {
 				const softDeleteDevice = db
 					.update(measuringDevices)
 					.set({ isDeleted: true, deleted: new Date() })
 					.where(eq(measuringDevices.id, form.data.deviceId));
 				await db.batch([softDeleteDevice, touchOccupant()]);
+			} else {
+				logger.error(
+					{ deletionError },
+					'Failed to delete measuring device but not due to foreign key constraint'
+				);
+				return error(500, { message: 'Nepodařilo se odstranit měřící zařízení' });
 			}
 		}
 

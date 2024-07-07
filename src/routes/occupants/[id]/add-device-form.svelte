@@ -8,6 +8,7 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { addDeviceFormSchema, type AddDeviceForm } from './add-device-form-schema';
+	import { logger } from '$lib/logger';
 
 	/** Controls whether the dialog's open */
 	export let open = false;
@@ -19,16 +20,16 @@
 	const form = superForm(data, {
 		validators: zodClient(addDeviceFormSchema),
 		onUpdated({ form }) {
+			logger.info({ form }, 'Add device form updated');
 			if (form.valid) {
 				if (form.posted) {
 					open = false;
 				}
 				toast.success(form.message ?? `Měřící zařízení ${form.data.name} bylo vytvořeno.`);
-			} else {
-				toast.error(`Nepodařilo se vytvořit měřící zařízení pro ${occupant.name}.`);
 			}
 		},
 		onError({ result }) {
+			logger.info({ result }, 'Add device form error');
 			if (result.error.message) {
 				toast.error(result.error.message);
 			}
@@ -36,6 +37,10 @@
 	});
 
 	const { form: formData, enhance, delayed } = form;
+
+	$: selectedEnergyType = $formData.energyType
+		? { label: labelsByEnergyType[$formData.energyType], value: $formData.energyType }
+		: undefined;
 
 	const energies = energyTypes.map((energyType) => ({
 		value: energyType,
@@ -65,7 +70,14 @@
 				<Form.Field {form} name="energyType">
 					<Form.Control let:attrs>
 						<Form.Label>Typ energie</Form.Label>
-						<Select.Root>
+						<Select.Root
+							selected={selectedEnergyType}
+							onSelectedChange={(item) => {
+								if (item !== undefined) {
+									$formData.energyType = item?.value;
+								}
+							}}
+						>
 							<Select.Trigger {...attrs}>
 								<Select.Value placeholder="Vyberte ..." />
 							</Select.Trigger>

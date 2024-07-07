@@ -13,7 +13,7 @@ export const createOccupantFormSchema = z.object({
 			invalid_type_error: 'Název musí být text',
 			required_error: 'Název je povinný'
 		})
-		.min(1, 'Název musí být alespoň 1 znak dlouhý')
+		.min(1, 'Název je povinný')
 		.max(280, 'Název nesmí být delší než 280 znaků')
 		.trim()
 		.default(''),
