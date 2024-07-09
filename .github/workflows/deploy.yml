@@ -27,6 +27,7 @@ jobs:
       DATABASE_LOGGING: false
       DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PUBLIC_LOG_LEVEL: error
 
     steps:
       - name: 📥 Checkout
