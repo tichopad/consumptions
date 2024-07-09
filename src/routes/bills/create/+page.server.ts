@@ -59,7 +59,7 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>;
 
 export const load: Load = async () => {
-	logger.debug('Loading data for /bills/create');
+	logger.info('Loading data for /bills/create');
 
 	const occupantsList = await db.query.occupants.findMany({
 		orderBy: asc(occupants.name),
@@ -88,8 +88,8 @@ export const load: Load = async () => {
 		};
 	});
 
-	logger.trace({ defaultOccupants }, 'Prepared default occupants data for the bill creation form');
-	logger.debug('Returning loaded data');
+	logger.debug({ defaultOccupants }, 'Prepared default occupants data for the bill creation form');
+	logger.info('Returning loaded data');
 
 	return {
 		form: await superValidate({ occupants: defaultOccupants }, zod(formSchema)),
@@ -99,11 +99,11 @@ export const load: Load = async () => {
 
 export const actions: Actions = {
 	createBill: async (event) => {
-		logger.debug('Handling createBill action');
+		logger.info('Handling createBill action');
 
 		const form = await superValidate(event, zod(formSchema));
 
-		logger.trace({ form }, 'Form data validated');
+		logger.debug({ form }, 'Form data validated');
 
 		if (!form.valid) return fail(400, { form });
 
@@ -130,12 +130,10 @@ export const actions: Actions = {
 		try {
 			await calculateAndStoreBills(form.data, billingPeriod.id, building.id);
 		} catch (error) {
-			console.error(error);
+			logger.error({ error }, 'Failed to calculate and store bills');
 			await db.delete(billingPeriods).where(eq(billingPeriods.id, billingPeriod.id));
 			return fail(500, { form });
 		}
-
-		console.groupEnd();
 
 		return redirect(302, `/bills/${billingPeriod.id}`);
 	}

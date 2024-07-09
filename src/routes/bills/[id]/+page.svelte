@@ -46,14 +46,14 @@
 			<Card.Content>
 				<Table.Root>
 					<Table.Body>
-						<Table.Row>
+						<!-- <Table.Row>
 							<Table.Head class="w-[200px]">Celková výměra</Table.Head>
 							<Table.Cell>
 								{numberFmt(data.occupiedArea)}&nbsp;m²
 							</Table.Cell>
-						</Table.Row>
+						</Table.Row> -->
 						<Table.Row>
-							<Table.Head>Occupants</Table.Head>
+							<Table.Head>Počet subjektů</Table.Head>
 							<Table.Cell>
 								{numberFmt(data.occupantsWithBills.length)}
 							</Table.Cell>
