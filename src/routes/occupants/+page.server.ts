@@ -2,21 +2,37 @@ import { logger } from '$lib/logger';
 import { occupants, type OccupantInsert } from '$lib/models/occupant';
 import { db } from '$lib/server/db/client';
 import { error, redirect, type Actions, type Load } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { archiveOccupantFormSchema } from './archive-occupant-form-schema';
 import { createOccupantFormSchema } from './create-edit-form-schema';
 
 export const load: Load = async () => {
-	const form = await superValidate(zod(createOccupantFormSchema));
-	const occupants = await db.query.occupants.findMany();
+	const [createForm, archiveForm] = await Promise.all([
+		superValidate(zod(createOccupantFormSchema)),
+		superValidate(zod(archiveOccupantFormSchema))
+	]);
+
+	const unarchivedOccupants = await db.query.occupants.findMany({
+		where: eq(occupants.isArchived, false)
+	});
+	const archivedOccupants = await db.query.occupants.findMany({
+		where: eq(occupants.isArchived, true)
+	});
 
 	return {
-		form,
-		occupants
+		archiveForm,
+		createForm,
+		archivedOccupants,
+		unarchivedOccupants
 	};
 };
 
 export const actions: Actions = {
+	/**
+	 * Handles occupant creation
+	 */
 	createOccupant: async (event) => {
 		const form = await superValidate(event, zod(createOccupantFormSchema));
 
@@ -44,5 +60,20 @@ export const actions: Actions = {
 		}
 
 		return redirect(304, `/occupants/${createdOccupant.id}`);
+	},
+	/**
+	 * Handles deleting measuring device
+	 */
+	archiveOccupant: async (event) => {
+		const form = await superValidate(event, zod(archiveOccupantFormSchema));
+
+		if (!form.valid) return message(form, 'Údaje subjektu nebyly správně vyplněny.');
+
+		await db
+			.update(occupants)
+			.set({ isArchived: true, archived: new Date() })
+			.where(eq(occupants.id, form.data.occupantId));
+
+		return message(form, `Subjekt ${form.data.name} byl archivován.`);
 	}
 };

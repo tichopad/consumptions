@@ -1,15 +1,16 @@
 import type { ConsumptionRecordInsert } from '$lib/models/consumption-record';
 import type { EnergyBillInsert } from '$lib/models/energy-bill';
+import { isChargedForUnmeasuredEnergy } from '$lib/occupants/utils';
 import { err, ok, type Result } from '$lib/result';
 import { isNullable, sumPreciseBy } from '$lib/utils';
 import BigNumber from 'bignumber.js';
 import type { CalculationInput, CalculationOutput } from './calculation-types';
 import {
+	getBillsForOwnersWithoutMeasurements,
 	getConsumptionRecords,
 	getMeasuredBills,
 	getUnmeasuredBills,
-	hasDevices,
-	isChargedByArea
+	hasDevices
 } from './utils';
 
 /** Describes incorrect input or errors related to the input */
@@ -106,7 +107,9 @@ export function calculateBills(
 	);
 
 	// Start processing occupants charged based on area
-	const occupantsUnmeasured = input.occupants.filter((o) => isChargedByArea(input.energyType, o));
+	const occupantsUnmeasured = input.occupants.filter((o) =>
+		isChargedForUnmeasuredEnergy(input.energyType, o)
+	);
 
 	// Calculate variables for splitting the remaining unmeasured cost
 	const totalCostForMeasuredConsumption = sumPreciseBy(billsMeasured, (b) => b.measuredCost ?? 0);
@@ -144,38 +147,21 @@ export function calculateBills(
 		input
 	);
 
-	// Lastly, if there's an occupant with fixed heating cost share, but no measurements and
-	// no unmeasured energy, there needs to be a fixed cost bill for them
-	// TODO: this can be a bit nicer - perhaps calculated as a part of the measured occupants?
-	const measuredOccupantsWithFixedHeatingShareAndNoMeasurements = input.occupants.filter((o) => {
+	// Lastly, if there're occupants with fixed heating cost share, but no measurements/devices and
+	// no unmeasured energy, there needs to be at least a fixed cost bill for them
+	// This is a legit case, e.g. for the owner of the building
+	const ownersWithoutConsumption = input.occupants.filter((o) => {
 		return (
-			o.heatingFixedCostShare !== null &&
+			!isNullable(o.heatingFixedCostShare) &&
 			!hasDevices(input.energyType, o) &&
-			!isChargedByArea(input.energyType, o)
+			!isChargedForUnmeasuredEnergy(input.energyType, o)
 		);
 	});
-	const fixedCostOnlyBills: EnergyBillInsert[] =
-		measuredOccupantsWithFixedHeatingShareAndNoMeasurements.map((occupant) => {
-			let fixedCost: number | undefined;
-
-			// Check if the occupant participates in the fixed heating cost
-			if (!isNullable(occupant.heatingFixedCostShare) && !isNullable(costPerFixedHeatingShare)) {
-				fixedCost = costPerFixedHeatingShare
-					.multipliedBy(occupant.heatingFixedCostShare)
-					.toNumber();
-			}
-
-			return {
-				billingPeriodId: input.billingPeriodId,
-				fixedCost: fixedCost ?? undefined,
-				startDate: input.dateRange.start,
-				endDate: input.dateRange.end,
-				energyType: input.energyType,
-				totalConsumption: 0,
-				totalCost: fixedCost ?? 0,
-				occupantId: occupant.id
-			};
-		});
+	const fixedCostOnlyBills: EnergyBillInsert[] = getBillsForOwnersWithoutMeasurements(
+		ownersWithoutConsumption,
+		costPerFixedHeatingShare,
+		input
+	);
 
 	// Finally, there needs to be a summary bill for the entire building
 	const billForBuilding: EnergyBillInsert = {

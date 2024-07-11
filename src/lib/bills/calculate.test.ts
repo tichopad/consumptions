@@ -448,8 +448,10 @@ function makeOccupant(buildingId: ID): Occupant {
 		squareMeters: 69,
 		created: new Date('2023-01-01T00:00:00Z'),
 		deleted: null,
+		archived: null,
 		heatingFixedCostShare: null,
 		isDeleted: false,
+		isArchived: false,
 		updated: new Date('2024-01-01T00:00:00Z')
 	};
 }

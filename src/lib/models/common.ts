@@ -61,3 +61,16 @@ export const softDeleteColumns = {
 	isDeleted: booleanColumn('isDeleted').notNull().default(false),
 	deleted: integer('deleted', { mode: 'timestamp' })
 };
+
+/**
+ * Defines a set of columns representing the ability for a record to be archived
+ *
+ * Archival is different from soft-deletion. It's supposed to be a user-facing state
+ * with the user having the ability to restore the record later.
+ * Soft-deletion is supposed to be permanent. It's an alternative to deleting the record, since
+ * we want to keep the related data and foreign keys intact.
+ */
+export const archiveColumns = {
+	isArchived: booleanColumn('isArchived').notNull().default(false),
+	archived: integer('archived', { mode: 'timestamp' })
+};

@@ -1,7 +1,7 @@
 import type { EnergyType } from '$lib/models/common';
 import type { ConsumptionRecordInsert } from '$lib/models/consumption-record';
 import type { EnergyBillInsert } from '$lib/models/energy-bill';
-import { capitalize, isNullable, sumPreciseBy } from '$lib/utils';
+import { isNullable, sumPreciseBy } from '$lib/utils';
 import type BigNumber from 'bignumber.js';
 import type { CalculationInput, OccupantCalculationEntry } from './calculation-types';
 
@@ -74,6 +74,38 @@ export function getUnmeasuredBills(
 }
 
 /**
+ * Maps occupants without measurements and without unmeasured consumption that
+ * still participate in the fixed heating cost to EnergyBill insert values
+ * This is a legit case, e.g. for the owner of the building
+ */
+export function getBillsForOwnersWithoutMeasurements(
+	ownersWithoutMeasurements: OccupantCalculationEntry[],
+	costPerFixedHeatingShare: BigNumber | null,
+	input: CalculationInput
+): EnergyBillInsert[] {
+	return ownersWithoutMeasurements.map((occupant) => {
+		let fixedCost: number | undefined;
+
+		// Check if the occupant participates in the fixed heating cost
+		// spoiler: they should
+		if (!isNullable(occupant.heatingFixedCostShare) && !isNullable(costPerFixedHeatingShare)) {
+			fixedCost = costPerFixedHeatingShare.multipliedBy(occupant.heatingFixedCostShare).toNumber();
+		}
+
+		return {
+			billingPeriodId: input.billingPeriodId,
+			fixedCost: fixedCost ?? undefined,
+			startDate: input.dateRange.start,
+			endDate: input.dateRange.end,
+			energyType: input.energyType,
+			totalConsumption: 0,
+			totalCost: fixedCost ?? 0,
+			occupantId: occupant.id
+		};
+	});
+}
+
+/**
  * Maps occupants' device consumption entries to ConsumptionRecord insert values
  */
 export function getConsumptionRecords(
@@ -96,18 +128,6 @@ export function getConsumptionRecords(
  */
 export function hasDevices(energyType: EnergyType, occupant: OccupantCalculationEntry): boolean {
 	return occupant.measuringDevices.some((device) => device.energyType === energyType);
-}
-
-/**
- * Checks whether an occupant is charged for an energy type based on their area
- */
-export function isChargedByArea(
-	energyType: EnergyType,
-	occupant: OccupantCalculationEntry
-): boolean {
-	const unmeasuredChargeProperty = `chargedUnmeasured${capitalize(energyType)}` as const;
-
-	return occupant[unmeasuredChargeProperty] === true;
 }
 
 /**

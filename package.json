@@ -15,7 +15,7 @@
 		"db:studio": "drizzle-kit studio --port 3333",
 		"dev": "vite dev",
 		"format": "prettier --cache --ignore-unknown --write .",
-		"lint": "prettier --cache --ignore-unknown --check . && eslint --cache --cache-location node_modules/.cache/eslint .",
+		"lint": "eslint --fix .",
 		"prepare": "husky",
 		"preview": "wrangler pages dev .svelte-kit/cloudflare",
 		"start": "turbo run db:studio & turbo run dev",
@@ -27,7 +27,7 @@
 		"@internationalized/date": "^3.5.2",
 		"@libsql/client": "^0.6.0",
 		"bignumber.js": "^9.1.2",
-		"bits-ui": "^0.21.3",
+		"bits-ui": "^0.21.12",
 		"clsx": "^2.1.0",
 		"drizzle-orm": "^0.31.2",
 		"drizzle-zod": "^0.5.1",
@@ -79,7 +79,7 @@
 	"lint-staged": {
 		"*.{js,svelte,ts,tsx}": [
 			"prettier --cache --write --ignore-unknown",
-			"eslint --cache --cache-location node_modules/.cache/eslint --fix"
+			"eslint --fix"
 		],
 		"*.{md,json,toml}": [
 			"prettier --cache --write --ignore-unknown"

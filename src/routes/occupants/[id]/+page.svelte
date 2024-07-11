@@ -122,7 +122,7 @@
 								</Table.Cell>
 								<Table.Cell title="Odstranit toto zařízení">
 									<Button
-										type="submit"
+										type="button"
 										variant="destructive"
 										size="icon"
 										on:click={openDeleteDevice(device)}

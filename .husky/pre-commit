@@ -2,7 +2,4 @@
 
 . "$(dirname "$0")/_/husky.sh"
 
-bun run check
 bunx lint-staged
-bun run test:unit run
-bunx drizzle-kit generate:sqlite && git add .

@@ -4,6 +4,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings } from './building';
 import {
+	archiveColumns,
 	booleanColumn,
 	metadataColumns,
 	primaryIdColumn,
@@ -24,6 +25,7 @@ export const occupants = sqliteTable('occupants', {
 	// Metadata
 	...metadataColumns,
 	...softDeleteColumns,
+	...archiveColumns,
 	// Basic properties
 	name: text('name').notNull(),
 	squareMeters: integer('squareMeters').notNull(),
