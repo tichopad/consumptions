@@ -7,6 +7,7 @@
 	import type { Occupant } from '$lib/models/occupant';
 	import ArchiveOccupantForm from './archive-occupant-form.svelte';
 	import CreateForm from './create-form.svelte';
+	import DeleteOccupantForm from './delete-occupant-form.svelte';
 	import OccupantsList from './occupants-list.svelte';
 
 	export let data;
@@ -15,13 +16,20 @@
 	let createDialogOpen = false;
 	// Controls whether the archive dialog is open
 	let archiveDialogOpen = false;
-	// The selected occupant for the archive dialog
+	// Controls whether the delete dialog is open
+	let deleteDialogOpen = false;
+	// The selected occupant for the archive and delete dialogs
 	let selectedOccupant: Occupant | null = null;
 
 	// Opens the archive occupant dialog
-	const openDeleteOccupant = (occupant: Occupant) => {
+	const openArchiveOccupant = (occupant: Occupant) => {
 		selectedOccupant = occupant;
 		archiveDialogOpen = true;
+	};
+	// Opens the delete occupant dialog
+	const openDeleteOccupant = (occupant: Occupant) => {
+		selectedOccupant = occupant;
+		deleteDialogOpen = true;
 	};
 </script>
 
@@ -33,6 +41,13 @@
 	data={data.archiveForm}
 	occupant={selectedOccupant}
 	bind:open={archiveDialogOpen}
+/>
+
+<!-- Occupant deletion form -->
+<DeleteOccupantForm
+	data={data.deleteForm}
+	occupant={selectedOccupant}
+	bind:open={deleteDialogOpen}
 />
 
 <Page>
@@ -52,12 +67,13 @@
 			<Card.Root>
 				<Card.Content class="pt-6">
 					<OccupantsList
+						emptyMessage="Zatím nejsou žádné subjekty k dispozici. Stiskněte na tlačítko Přidat pro přidání prvního."
 						occupants={data.unarchivedOccupants}
 						actions={[
 							{
 								label: 'Archivovat',
 								title: 'Archivovat subjekt',
-								onClick: openDeleteOccupant
+								onClick: openArchiveOccupant
 							}
 						]}
 					/>
@@ -68,13 +84,13 @@
 			<Card.Root>
 				<Card.Content class="pt-6">
 					<OccupantsList
+						emptyMessage="Zatím nebyly žádné subjekty archivovány."
 						occupants={data.archivedOccupants}
 						actions={[
 							{
 								label: 'Odstranit',
 								title: 'Odstranit subjekt',
-								// TODO: implement
-								onClick: console.log
+								onClick: openDeleteOccupant
 							}
 						]}
 					/>
