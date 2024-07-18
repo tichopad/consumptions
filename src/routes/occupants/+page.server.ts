@@ -9,13 +9,16 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { archiveOccupantFormSchema } from './archive-occupant-form-schema';
 import { createOccupantFormSchema } from './create-edit-form-schema';
 import { deleteOccupantFormSchema } from './delete-occupant-form-schema';
+import { restoreOccupantFormSchema } from './restore-occupant-form-schema';
 
 export const load: Load = async () => {
-	const [createForm, archiveForm, deleteForm] = await Promise.all([
+	// The `id` property is required when using multiple forms with a schema of the same shape
+	// See https://superforms.rocks/concepts/multiple-forms
+	const [createForm, archiveForm, deleteForm, restoreForm] = await Promise.all([
 		superValidate(zod(createOccupantFormSchema)),
-		// See https://superforms.rocks/concepts/multiple-forms
 		superValidate(zod(archiveOccupantFormSchema), { id: 'archiveForm' }),
-		superValidate(zod(deleteOccupantFormSchema), { id: 'deleteForm' })
+		superValidate(zod(deleteOccupantFormSchema), { id: 'deleteForm' }),
+		superValidate(zod(restoreOccupantFormSchema), { id: 'restoreForm' })
 	]);
 
 	const unarchivedOccupants = await db.query.occupants.findMany({
@@ -31,6 +34,7 @@ export const load: Load = async () => {
 		archiveForm,
 		createForm,
 		deleteForm,
+		restoreForm,
 		archivedOccupants,
 		unarchivedOccupants
 	};
@@ -122,5 +126,25 @@ export const actions: Actions = {
 		}
 
 		return message(form, `Subjekt ${form.data.name} byl odstraněn.`);
+	},
+	/**
+	 * Handles restoring an occupant
+	 */
+	restoreOccupant: async (event) => {
+		const form = await superValidate(event, zod(restoreOccupantFormSchema));
+
+		if (!form.valid) {
+			logger.info({ form }, 'Failed restoreOccupant form validation');
+			return message(form, 'Údaje subjektu nebyly správně vyplněny.');
+		}
+
+		await db
+			.update(occupants)
+			.set({ isArchived: false, archived: null })
+			.where(eq(occupants.id, form.data.occupantId));
+
+		logger.info({ occupantId: form.data.occupantId }, 'Restored occupant');
+
+		return message(form, `Subjekt ${form.data.name} byl obnoven.`);
 	}
 };

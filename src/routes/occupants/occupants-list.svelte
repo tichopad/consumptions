@@ -5,12 +5,14 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { dateFmt, numberFmt } from '$lib/i18n/helpers';
+	import { numberFmt } from '$lib/i18n/helpers';
 	import type { Occupant } from '$lib/models/occupant';
 	import { isChargedForAnyUnmeasuredEnergy } from '$lib/occupants/utils';
+	import type { ComponentType } from 'svelte';
 	import {
 		DotsHorizontal as DotsHorizontalIcon,
-		QuestionMarkCircled as QuestionMarkCircledIcon
+		QuestionMarkCircled as QuestionMarkCircledIcon,
+		Icon
 	} from 'svelte-radix';
 
 	/** Occupants to display */
@@ -23,11 +25,20 @@
 		label: string;
 		/** Tooltip title */
 		title: string;
+		/** Icon to display */
+		icon?: ComponentType;
 		/** Callback to execute when the action is clicked */
 		onClick: (occupant: Occupant) => void;
 	};
 	/** Actions to display in the last column */
 	export let actions: Action[];
+
+	type ExtraColumn = {
+		label: string;
+		value: (occupant: Occupant) => string | number | null;
+	};
+	/** Extra columns to display after the last column */
+	export let extraColumns: ExtraColumn[] = [];
 </script>
 
 {#if occupants.length === 0}
@@ -53,7 +64,9 @@
 						</Tooltip.Content>
 					</Tooltip.Root>
 				</Table.Head>
-				<Table.Head class="w-[100px]">Přidán</Table.Head>
+				{#each extraColumns as column}
+					<Table.Head class="w-[100px]">{column.label}</Table.Head>
+				{/each}
 				<Table.Head class="w-9"><span class="sr-only">Akce</span></Table.Head>
 			</Table.Row>
 		</Table.Header>
@@ -92,9 +105,9 @@
 							<span class="text-muted-foreground">-</span>
 						{/if}
 					</Table.Cell>
-					<Table.Cell>
-						{dateFmt(occupant.created, { dateStyle: 'medium', timeStyle: undefined })}
-					</Table.Cell>
+					{#each extraColumns as column}
+						<Table.Cell>{column.value(occupant)}</Table.Cell>
+					{/each}
 					<Table.Cell>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger asChild let:builder>
@@ -113,10 +126,13 @@
 								<DropdownMenu.Label class="sr-only">Akce</DropdownMenu.Label>
 								{#each actions as action}
 									<DropdownMenu.Item
-										class="hover:cursor-pointer"
+										class="hover:cursor-pointer flex gap-1 items-center"
 										title={action.title}
 										on:click={() => action.onClick(occupant)}
 									>
+										{#if action.icon !== undefined}
+											<Icon icon={action.icon} />
+										{/if}
 										{action.label}
 									</DropdownMenu.Item>
 								{/each}

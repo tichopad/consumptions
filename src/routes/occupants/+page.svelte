@@ -4,13 +4,19 @@
 	import * as Tabs from '$lib/components/ui/tabs';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
+	import { dateFmt } from '$lib/i18n/helpers';
 	import type { Occupant } from '$lib/models/occupant';
 	import ArchiveOccupantForm from './archive-occupant-form.svelte';
 	import CreateForm from './create-form.svelte';
 	import DeleteOccupantForm from './delete-occupant-form.svelte';
 	import OccupantsList from './occupants-list.svelte';
+	import RestoreOccupantForm from './restore-occupant-form.svelte';
+	import { Archive as ArchiveIcon, Reset as ResetIcon, Trash as TrashIcon } from 'svelte-radix';
 
 	export let data;
+
+	// The selected occupant for the archive and delete dialogs
+	let selectedOccupant: Occupant | null = null;
 
 	// Controls whether the create dialog is open
 	let createDialogOpen = false;
@@ -18,8 +24,8 @@
 	let archiveDialogOpen = false;
 	// Controls whether the delete dialog is open
 	let deleteDialogOpen = false;
-	// The selected occupant for the archive and delete dialogs
-	let selectedOccupant: Occupant | null = null;
+	// Controls whether the restore dialog is open
+	let restoreDialogOpen = false;
 
 	// Opens the archive occupant dialog
 	const openArchiveOccupant = (occupant: Occupant) => {
@@ -30,6 +36,11 @@
 	const openDeleteOccupant = (occupant: Occupant) => {
 		selectedOccupant = occupant;
 		deleteDialogOpen = true;
+	};
+	// Opens the restore occupant dialog
+	const openRestoreOccupant = (occupant: Occupant) => {
+		selectedOccupant = occupant;
+		restoreDialogOpen = true;
 	};
 </script>
 
@@ -48,6 +59,13 @@
 	data={data.deleteForm}
 	occupant={selectedOccupant}
 	bind:open={deleteDialogOpen}
+/>
+
+<!-- Occupant restoration form -->
+<RestoreOccupantForm
+	data={data.restoreForm}
+	occupant={selectedOccupant}
+	bind:open={restoreDialogOpen}
 />
 
 <Page>
@@ -73,7 +91,16 @@
 							{
 								label: 'Archivovat',
 								title: 'Archivovat subjekt',
+								icon: ArchiveIcon,
 								onClick: openArchiveOccupant
+							}
+						]}
+						extraColumns={[
+							{
+								label: 'Vytvořeno',
+								value: (occupant) => {
+									return dateFmt(occupant.created, { dateStyle: 'medium', timeStyle: undefined });
+								}
 							}
 						]}
 					/>
@@ -88,9 +115,25 @@
 						occupants={data.archivedOccupants}
 						actions={[
 							{
-								label: 'Odstranit',
-								title: 'Odstranit subjekt',
+								label: 'Obnovit',
+								title: 'Obnovit subjekt',
+								icon: ResetIcon,
+								onClick: openRestoreOccupant
+							},
+							{
+								label: 'Vymazat',
+								title: 'Vymazat subjekt',
+								icon: TrashIcon,
 								onClick: openDeleteOccupant
+							}
+						]}
+						extraColumns={[
+							{
+								label: 'Archivováno',
+								value: (occupant) => {
+									if (occupant.archived === null) return '-';
+									return dateFmt(occupant.archived, { dateStyle: 'medium', timeStyle: undefined });
+								}
 							}
 						]}
 					/>

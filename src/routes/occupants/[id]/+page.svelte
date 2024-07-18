@@ -66,7 +66,11 @@
 		<Header2>Subjekt</Header2>
 		<Header1>{data.occupant.name}</Header1>
 	</section>
-	<DateMetadata created={data.occupant.created} updated={data.occupant.updated} />
+	<DateMetadata
+		archived={data.occupant.archived}
+		created={data.occupant.created}
+		updated={data.occupant.updated}
+	/>
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>Základní informace</Card.Title>
@@ -115,10 +119,10 @@
 								</Table.Cell>
 								<Table.Cell>{device.name}</Table.Cell>
 								<Table.Cell>
-									{dateFmt(device.created, { dateStyle: 'short', timeStyle: 'short' })}
+									{dateFmt(device.created, { dateStyle: 'medium', timeStyle: 'short' })}
 								</Table.Cell>
 								<Table.Cell>
-									{dateFmt(device.updated, { dateStyle: 'short', timeStyle: 'short' })}
+									{dateFmt(device.updated, { dateStyle: 'medium', timeStyle: 'short' })}
 								</Table.Cell>
 								<Table.Cell title="Odstranit toto zařízení">
 									<Button
