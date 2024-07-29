@@ -65,13 +65,10 @@ export const load: Load = async ({ params }) => {
 		}
 	}
 
-	const billWithBuilding = billingPeriod.energyBills.find((bill) => bill.buildings !== null);
-
 	const occupiedArea = occupantsWithBills.reduce((acc, occupant) => acc + occupant.squareMeters, 0);
 
 	return {
 		billingPeriod,
-		building: billWithBuilding?.buildings ?? null,
 		occupiedArea,
 		occupantsWithBills,
 		electricityBill,

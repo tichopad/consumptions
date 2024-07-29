@@ -37,32 +37,6 @@
 		</Header1>
 	</section>
 	<DateMetadata created={data.billingPeriod.created} />
-	{#if data.building !== null}
-		<Card.Root>
-			<Card.Header>
-				<Card.Title><h3>Budova</h3></Card.Title>
-				<Card.Description>Souhrnné informace o budově.</Card.Description>
-			</Card.Header>
-			<Card.Content>
-				<Table.Root>
-					<Table.Body>
-						<!-- <Table.Row>
-							<Table.Head class="w-[200px]">Celková výměra</Table.Head>
-							<Table.Cell>
-								{numberFmt(data.occupiedArea)}&nbsp;m²
-							</Table.Cell>
-						</Table.Row> -->
-						<Table.Row>
-							<Table.Head>Počet subjektů</Table.Head>
-							<Table.Cell>
-								{numberFmt(data.occupantsWithBills.length)}
-							</Table.Cell>
-						</Table.Row>
-					</Table.Body>
-				</Table.Root>
-			</Card.Content>
-		</Card.Root>
-	{/if}
 	<Card.Root>
 		<Card.Header>
 			<Card.Title><h3>Celkový náklad a spotřeba</h3></Card.Title>
@@ -111,7 +85,7 @@
 									-
 								{/if}
 							</Table.Cell>
-							<Table.Cell>
+							<Table.Cell class="font-medium">
 								{currencyFmt(data.electricityBill.totalCost)}
 							</Table.Cell>
 							<Table.Cell>-</Table.Cell>
@@ -145,7 +119,7 @@
 									-
 								{/if}
 							</Table.Cell>
-							<Table.Cell>
+							<Table.Cell class="font-medium">
 								{currencyFmt(data.waterBill.totalCost)}
 							</Table.Cell>
 							<Table.Cell>-</Table.Cell>
@@ -179,7 +153,7 @@
 									-
 								{/if}
 							</Table.Cell>
-							<Table.Cell>
+							<Table.Cell class="font-medium">
 								{currencyFmt(data.heatingBill.totalCost)}
 							</Table.Cell>
 							<Table.Cell>
