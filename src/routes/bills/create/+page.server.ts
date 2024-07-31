@@ -15,7 +15,7 @@ import {
 import { db } from '$lib/server/db/client';
 import { assert } from '$lib/utils';
 import { fail, redirect, type Actions, type Load } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
@@ -63,6 +63,7 @@ export const load: Load = async () => {
 
 	const occupantsList = await db.query.occupants.findMany({
 		orderBy: asc(occupants.name),
+		where: and(eq(occupants.isArchived, false), eq(occupants.isDeleted, false)),
 		with: {
 			measuringDevices: true
 		}
@@ -188,12 +189,21 @@ async function calculateAndStoreBills(
 		heating.value.consumptionRecordsToInsert
 	);
 
+	logger.debug({ bills, records }, 'Starting transaction');
+
 	return db.transaction(async (tx) => {
 		if (bills.length > 0) {
+			logger.debug({ bills }, 'Inserting bills');
 			await tx.insert(energyBills).values(bills);
+		} else {
+			logger.debug({ bills }, 'No bills to insert');
 		}
 		if (records.length > 0) {
+			logger.debug({ records }, 'Inserting records');
 			await tx.insert(consumptionRecords).values(records);
+		} else {
+			logger.debug({ records }, 'No records to insert');
 		}
+		logger.debug('Committing transaction');
 	});
 }

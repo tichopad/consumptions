@@ -3,7 +3,6 @@
 	import { currencyFmt } from '$lib/i18n/helpers';
 	import * as echarts from 'echarts';
 	import { init } from 'echarts/core';
-
 	import { Chart } from 'svelte-echarts';
 
 	/** Data for the chart */
@@ -29,7 +28,7 @@
 			{
 				type: 'pie' as const,
 				radius: ['40%', '70%'],
-				padAngle: 5,
+				padAngle: 1,
 				avoidLabelOverlap: false,
 				itemStyle: {
 					borderRadius: 10,
@@ -48,6 +47,8 @@
 				labelLine: {
 					show: false
 				},
+				top: '30%',
+				width: '100%',
 				data: chartData
 			}
 		]
