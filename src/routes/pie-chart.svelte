@@ -13,7 +13,7 @@
 
 	const options = {
 		tooltip: {
-			trigger: 'item' as const,
+			trigger: 'item',
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			formatter: ({ value }: any) => currencyFmt(value),
 			textStyle: {
@@ -21,12 +21,13 @@
 			}
 		},
 		legend: {
-			top: 0,
-			left: '-4em'
+			top: 'top',
+			left: '-4.5em',
+			orient: 'horizontal'
 		},
 		series: [
 			{
-				type: 'pie' as const,
+				type: 'pie',
 				radius: ['40%', '70%'],
 				padAngle: 1,
 				avoidLabelOverlap: false,
@@ -37,7 +38,7 @@
 				},
 				label: {
 					show: false,
-					position: 'center' as const
+					position: 'center'
 				},
 				emphasis: {
 					label: {
@@ -47,7 +48,7 @@
 				labelLine: {
 					show: false
 				},
-				top: '30%',
+				top: '25%',
 				width: '100%',
 				data: chartData
 			}

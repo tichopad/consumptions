@@ -1,12 +1,17 @@
 import { dev } from '$app/environment';
-import { PUBLIC_LOG_LEVEL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import pino from 'pino';
 
-const level = PUBLIC_LOG_LEVEL ?? 'error';
+// trace < debug < info < warn < error
+const level = env.PUBLIC_LOG_LEVEL ?? 'error';
+console.log('LOG LEVEL', level);
 
 export const logger = dev
 	? pino({
 			level,
+			serializers: {
+				err: pino.stdSerializers.errWithCause
+			},
 			transport: {
 				target: 'pino-pretty',
 				level,
@@ -15,4 +20,9 @@ export const logger = dev
 				}
 			}
 		})
-	: pino();
+	: pino({
+			level,
+			serializers: {
+				err: pino.stdSerializers.errWithCause
+			}
+		});

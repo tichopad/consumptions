@@ -494,3 +494,33 @@ exports[`calculateBills > handles real world calculation scenario 3`] = `
   ],
 }
 `;
+
+exports[`calculateBills > handles zero total consumption 1`] = `
+{
+  "billsToInsert": [
+    {
+      "billedArea": 10,
+      "billingPeriodId": "billing_period_1",
+      "costPerSquareMeter": 900,
+      "endDate": 2024-01-31T00:00:00.000Z,
+      "energyType": "heating",
+      "occupantId": "occupant_renterA",
+      "startDate": 2024-01-01T00:00:00.000Z,
+      "totalCost": 9000,
+    },
+    {
+      "billingPeriodId": "billing_period_1",
+      "buildingId": "building_1",
+      "costPerSquareMeter": 900,
+      "costPerUnit": 0,
+      "endDate": 2024-01-31T00:00:00.000Z,
+      "energyType": "heating",
+      "fixedCost": undefined,
+      "startDate": 2024-01-01T00:00:00.000Z,
+      "totalConsumption": 0,
+      "totalCost": 9000,
+    },
+  ],
+  "consumptionRecordsToInsert": [],
+}
+`;

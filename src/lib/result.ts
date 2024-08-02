@@ -1,8 +1,17 @@
 /**
+ * Successful result of an operation
+ */
+export type Ok<T> = { success: true; value: T };
+/**
+ * Failed result of an operation
+ */
+export type Err<E> = { success: false; error: E };
+
+/**
  * A simple Result type inspired by Rust's type of the same name.
  * Describes the result of an operation - either success or a fail
  */
-export type Result<T, E> = { success: true; value: T } | { success: false; error: E };
+export type Result<T, E> = Ok<T> | Err<E>;
 
 /** Returns a successful result */
 export function ok<T>(value: T): Result<T, never> {

@@ -1,11 +1,24 @@
 import BigNumber from 'bignumber.js';
+import type { Ok, Result } from './result';
 
 /**
  * A simple invariance check function
  */
-export function assert(condition: boolean, message?: string): asserts condition {
+export function assert(condition: boolean, message?: string, cause?: Error): asserts condition {
 	if (!condition) {
-		throw new Error(message || 'Assertion failed');
+		throw new Error(message || 'Assertion failed', { cause });
+	}
+}
+
+/**
+ * A simple invariance check function for successful results
+ */
+export function assertSuccess<T, E>(
+	result: Result<T, E>,
+	message?: string
+): asserts result is Ok<T> {
+	if (!result.success) {
+		throw new Error(message || 'Assertion failed', { cause: result.error });
 	}
 }
 

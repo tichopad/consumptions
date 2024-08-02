@@ -14,14 +14,10 @@ import {
 } from './utils';
 
 /** Describes incorrect input or errors related to the input */
-export class CalculationInputError extends Error {
-	message = 'Calculation failed because of an invalid input';
-}
+export class CalculationInputError extends Error {}
 
 /** Describes a negative cost or calculated value */
-export class UnexpectedNegativeCalculationError extends Error {
-	message = 'Calculation was expected to return a positive value, but it returned a negative value';
-}
+export class UnexpectedNegativeCalculationError extends Error {}
 
 // All possible expected errors
 type CalculationError = CalculationInputError | UnexpectedNegativeCalculationError;
@@ -48,23 +44,41 @@ export function calculateBills(
 	if (input.occupants.length === 0) {
 		return err(new CalculationInputError('No occupants given'));
 	}
-	if (input.totalConsumption <= 0) {
-		return err(new CalculationInputError('Total consumption cannot be negative or zero'));
+	if (input.totalConsumption < 0) {
+		return err(
+			new CalculationInputError('Total consumption cannot be negative', {
+				cause: new Error(`Expected a positive number, got ${input.totalConsumption}`)
+			})
+		);
 	}
 	if (input.totalCost <= 0) {
-		return err(new CalculationInputError('Total cost cannot be negative or zero'));
+		return err(
+			new CalculationInputError('Total cost cannot be negative', {
+				cause: new Error(`Expected a positive number, got ${input.totalCost}`)
+			})
+		);
 	}
 	if (input.fixedCost !== undefined && input.fixedCost < 0) {
-		return err(new CalculationInputError('Fixed cost cannot be negative'));
+		return err(
+			new CalculationInputError('Fixed cost cannot be negative', {
+				cause: new Error(`Expected a positive number, got ${input.fixedCost}`)
+			})
+		);
 	}
 	if (input.fixedCost !== undefined && input.energyType !== 'heating') {
-		return err(new CalculationInputError('Only "heating" can have a fixed cost'));
+		return err(
+			new CalculationInputError('Only "heating" can have a fixed cost', {
+				cause: new Error(`Expected "heating", got "${input.energyType}"`)
+			})
+		);
 	}
 
 	// Basic values for the entire bill
 	const totalConsumption = new BigNumber(input.totalConsumption);
 	const totalCost = new BigNumber(input.totalCost);
-	const costPerUnit = totalCost.dividedBy(totalConsumption);
+	const costPerUnit = totalConsumption.isEqualTo(0)
+		? new BigNumber(0)
+		: totalCost.dividedBy(totalConsumption);
 
 	// Basic values for splitting up the fixed cost
 	const fixedCost = input.fixedCost !== undefined ? new BigNumber(input.fixedCost) : null;

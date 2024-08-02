@@ -13,7 +13,7 @@ import {
 	type ID
 } from '$lib/models/schema';
 import { db } from '$lib/server/db/client';
-import { assert } from '$lib/utils';
+import { assertSuccess } from '$lib/utils';
 import { fail, redirect, type Actions, type Load } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import { superValidate } from 'sveltekit-superforms';
@@ -89,7 +89,7 @@ export const load: Load = async () => {
 		};
 	});
 
-	logger.debug({ defaultOccupants }, 'Prepared default occupants data for the bill creation form');
+	logger.trace({ defaultOccupants }, 'Prepared default occupants data for the bill creation form');
 	logger.info('Returning loaded data');
 
 	return {
@@ -131,7 +131,7 @@ export const actions: Actions = {
 		try {
 			await calculateAndStoreBills(form.data, billingPeriod.id, building.id);
 		} catch (error) {
-			logger.error({ error }, 'Failed to calculate and store bills');
+			logger.error(error);
 			await db.delete(billingPeriods).where(eq(billingPeriods.id, billingPeriod.id));
 			return fail(500, { form });
 		}
@@ -154,7 +154,7 @@ async function calculateAndStoreBills(
 		dateRange: formData.dateRange,
 		occupants: formData.occupants
 	});
-	assert(electricity.success, 'Failed to calculate electricity bills');
+	assertSuccess(electricity, 'Failed to calculate electricity bills');
 
 	const water = calculateBills({
 		billingPeriodId,
@@ -165,7 +165,7 @@ async function calculateAndStoreBills(
 		dateRange: formData.dateRange,
 		occupants: formData.occupants
 	});
-	assert(water.success, 'Failed to calculate water bills');
+	assertSuccess(water, 'Failed to calculate water bills');
 
 	const heating = calculateBills({
 		billingPeriodId,
@@ -177,7 +177,7 @@ async function calculateAndStoreBills(
 		dateRange: formData.dateRange,
 		occupants: formData.occupants
 	});
-	assert(heating.success, 'Failed to calculate heating bills');
+	assertSuccess(heating, 'Failed to calculate heating bills');
 
 	const bills: EnergyBillInsert[] = electricity.value.billsToInsert.concat(
 		water.value.billsToInsert,

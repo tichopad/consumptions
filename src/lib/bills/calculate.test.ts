@@ -1,6 +1,6 @@
 import { type EnergyType, type ID } from '$lib/models/common';
 import type { Occupant } from '$lib/models/occupant';
-import { sumPreciseBy } from '$lib/utils';
+import { assertSuccess, sumPreciseBy } from '$lib/utils';
 import { assert, describe, expect, test } from 'vitest';
 import { CalculationInputError, calculateBills } from './calculate';
 import type { MeasuringDeviceConsumption, OccupantCalculationEntry } from './calculation-types';
@@ -197,7 +197,7 @@ describe('calculateBills', () => {
 			billingPeriodId,
 			buildingId,
 			energyType: 'electricity',
-			totalConsumption: 0,
+			totalConsumption: -420,
 			totalCost: 9000,
 			dateRange: {
 				start: new Date('2024-01-01T00:00:00Z'),
@@ -306,6 +306,23 @@ describe('calculateBills', () => {
 		});
 		assert(electricityResult.success === false);
 		expect(electricityResult.error).toBeInstanceOf(CalculationInputError);
+	});
+
+	test('handles zero total consumption', () => {
+		const result = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'heating',
+			totalConsumption: 0,
+			totalCost: 9000,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [renterA]
+		});
+		assertSuccess(result);
+		expect(result.value).toMatchSnapshot();
 	});
 
 	test.concurrent('handles real world calculation scenario', ({ expect }) => {
