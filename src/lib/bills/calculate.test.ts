@@ -325,6 +325,54 @@ describe('calculateBills', () => {
 		expect(result.value).toMatchSnapshot();
 	});
 
+	test.concurrent('correctly splits fixed cost', () => {
+		const bId = 'building_1' as ID;
+		const occupant1 = makeOwner('occupant1', bId, {
+			heatingFixedCostShare: 10,
+			measuringDevices: [makeMeasurement('occupant1', 'heating', 10)]
+		});
+		const occupant2 = makeOwner('occupant2', bId, {
+			measuringDevices: [makeMeasurement('occupant2', 'heating', 20)]
+		});
+		const occupant3 = makeOwner('occupant3', bId, {
+			chargedUnmeasuredHeating: true,
+			squareMeters: 10,
+			measuringDevices: []
+		});
+		const result = calculateBills({
+			billingPeriodId,
+			buildingId,
+			energyType: 'heating',
+			totalConsumption: 50,
+			totalCost: 40000,
+			fixedCost: 20000,
+			dateRange: {
+				start: new Date('2024-01-01T00:00:00Z'),
+				end: new Date('2024-01-31T00:00:00Z')
+			},
+			occupants: [occupant1, occupant2, occupant3]
+		});
+		assertSuccess(result);
+
+		const occupant1Bill = result.value.billsToInsert.find((b) => b.occupantId === occupant1.id);
+		expect(occupant1Bill?.costPerUnit).toBe(400);
+		expect(occupant1Bill?.totalCost).toBe(24000);
+		expect(occupant1Bill?.fixedCost).toBe(20000);
+		expect(occupant1Bill?.measuredCost).toBe(4000);
+
+		const occupant2Bill = result.value.billsToInsert.find((b) => b.occupantId === occupant2.id);
+		expect(occupant2Bill?.costPerUnit).toBe(400);
+		expect(occupant2Bill?.totalCost).toBe(8000);
+		expect(occupant2Bill?.fixedCost).toBeUndefined();
+		expect(occupant2Bill?.measuredCost).toBe(8000);
+
+		const occupant3Bill = result.value.billsToInsert.find((b) => b.occupantId === occupant3.id);
+		expect(occupant3Bill?.totalCost).toBe(8000);
+		expect(occupant3Bill?.costPerSquareMeter).toBe(800);
+		expect(occupant3Bill?.fixedCost).toBeUndefined();
+		expect(occupant3Bill?.measuredCost).toBeUndefined();
+	});
+
 	test.concurrent('handles real world calculation scenario', ({ expect }) => {
 		// Setup
 		const owner1ElectricityConsumption = makeMeasurement('owner1', 'electricity', 150);

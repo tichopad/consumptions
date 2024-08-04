@@ -40,6 +40,13 @@
 		},
 		onUpdated({ form }) {
 			console.log(form);
+			if (form.posted) {
+				if (form.valid) {
+					toast.success(form.message ?? 'Vyúčtování vytvořeno.');
+				} else {
+					toast.error(form.message ?? 'Nepodařilo se vytvořit vyúčtování.');
+				}
+			}
 		}
 	});
 

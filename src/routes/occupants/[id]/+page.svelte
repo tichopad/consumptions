@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import EnergyTypeIcon from '$lib/components/icons/energy-type.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
@@ -7,7 +8,9 @@
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
-	import { labelsByEnergyType } from '$lib/models/common';
+	import { currencyFmt, dateFmt, energyUnitFmt, rangeDateFmt } from '$lib/i18n/helpers';
+	import { labelsByEnergyType, type EnergyType } from '$lib/models/common';
+	import type { EnergyBill } from '$lib/models/energy-bill';
 	import type { MeasuringDevice } from '$lib/models/measuring-device';
 	import type { ButtonEventHandler } from 'bits-ui';
 	import { Trash as TrashIcon } from 'svelte-radix';
@@ -15,7 +18,6 @@
 	import DeleteDeviceForm from './delete-device-form.svelte';
 	import EditDeviceForm from './edit-device-form.svelte';
 	import EditForm from './edit-form.svelte';
-	import { dateFmt } from '$lib/i18n/helpers';
 
 	export let data;
 
@@ -39,6 +41,11 @@
 		event.stopPropagation();
 		selectedDevice = device;
 		isDeleteDeviceDialogOpen = true;
+	};
+
+	// Get a specific energy bill from a list of bills
+	const getBill = (bills: EnergyBill[], energyType: EnergyType) => {
+		return bills.find((bill) => bill.energyType === energyType);
 	};
 </script>
 
@@ -133,6 +140,101 @@
 									>
 										<TrashIcon class="w-4 h-4" />
 									</Button>
+								</Table.Cell>
+							</Table.Row>
+						{/each}
+					</Table.Body>
+				</Table.Root>
+			{/if}
+		</Card.Content>
+	</Card.Root>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>Vyúčtování</Card.Title>
+			<Card.Description>Seznam vyúčtování subjektu</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			{#if data.billingPeriodsWithBills.length === 0}
+				<p class="text-sm text-muted-foreground">
+					Tento subjekt zatím nemá žádné vyúčtování. Stiskněte na tlačítko Přidat pro přidání
+					prvního.
+				</p>
+			{:else}
+				<Table.Root>
+					<Table.Header>
+						<Table.Row>
+							<Table.Head class="w-[300px]">Datum</Table.Head>
+							<Table.Head>
+								<div class="flex items-center gap-1">
+									<EnergyTypeIcon class="w-4 h-4" energyType="electricity" withTooltip={false} />
+									<span>{labelsByEnergyType['electricity']}</span>
+								</div>
+							</Table.Head>
+							<Table.Head>
+								<div class="flex items-center gap-1">
+									<EnergyTypeIcon class="w-4 h-4" energyType="water" withTooltip={false} />
+									<span>{labelsByEnergyType['water']}</span>
+								</div>
+							</Table.Head>
+							<Table.Head>
+								<div class="flex items-center gap-1">
+									<EnergyTypeIcon class="w-4 h-4" energyType="heating" withTooltip={false} />
+									<span>{labelsByEnergyType['heating']}</span>
+								</div>
+							</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body>
+						{#each data.billingPeriodsWithBills as billingPeriod (billingPeriod.id)}
+							<Table.Row class="cursor-pointer" on:click={() => goto(`/bills/${billingPeriod.id}`)}>
+								<Table.Cell class="font-medium">
+									{rangeDateFmt({ start: billingPeriod.startDate, end: billingPeriod.endDate })}
+								</Table.Cell>
+								{@const electricityBill = getBill(billingPeriod.energyBills, 'electricity')}
+								{@const waterBill = getBill(billingPeriod.energyBills, 'water')}
+								{@const heatingBill = getBill(billingPeriod.energyBills, 'heating')}
+								<Table.Cell>
+									{#if electricityBill !== undefined}
+										<div class="flex flex-col justify-center items-start gap-1">
+											<div class="font-medium">{currencyFmt(electricityBill.totalCost)}</div>
+											{#if electricityBill.totalConsumption !== null}
+												<div>
+													{energyUnitFmt(electricityBill.totalConsumption, 'electricity')}
+												</div>
+											{/if}
+										</div>
+									{/if}
+								</Table.Cell>
+								<Table.Cell>
+									{#if waterBill !== undefined}
+										<div class="flex flex-col justify-center items-start gap-1">
+											<div class="font-medium">{currencyFmt(waterBill.totalCost)}</div>
+											{#if waterBill.totalConsumption !== null}
+												<div>
+													{energyUnitFmt(waterBill.totalConsumption, 'water')}
+												</div>
+											{/if}
+										</div>
+									{/if}
+								</Table.Cell>
+								<Table.Cell>
+									{#if heatingBill !== undefined}
+										<div class="flex flex-col justify-center items-start gap-1">
+											<div class="font-medium">
+												{currencyFmt(heatingBill.totalCost)}
+												{#if heatingBill.fixedCost !== null}
+													<span class="font-normal text-muted-foreground">
+														(z toho {currencyFmt(heatingBill.fixedCost ?? 0)} fix.)
+													</span>
+												{/if}
+											</div>
+											{#if heatingBill.totalConsumption !== null}
+												<div>
+													{energyUnitFmt(heatingBill.totalConsumption, 'heating')}
+												</div>
+											{/if}
+										</div>
+									{/if}
 								</Table.Cell>
 							</Table.Row>
 						{/each}

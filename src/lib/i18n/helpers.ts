@@ -1,3 +1,6 @@
+import type { DateRange } from '$lib/common-types';
+import { unitsByEnergyType, type EnergyType } from '$lib/models/common';
+
 export const DEFAULT_LOCALE = 'cs-CZ';
 
 // Shallowly merges options with default options
@@ -22,6 +25,16 @@ export function currencyFmt(value: number) {
 	});
 }
 
+/** Energy unit formatter */
+export function energyUnitFmt(value: number, energyType: EnergyType) {
+	const number = numberFmt(value, {
+		style: 'decimal',
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2
+	});
+	return `${number} ${unitsByEnergyType[energyType]}`;
+}
+
 /** Date formatter */
 export function dateFmt(value: Date | number, options?: Intl.DateTimeFormatOptions) {
 	const defaultOptions: Intl.DateTimeFormatOptions = {
@@ -32,6 +45,14 @@ export function dateFmt(value: Date | number, options?: Intl.DateTimeFormatOptio
 	return new Intl.DateTimeFormat(DEFAULT_LOCALE, mergeOptions(options, defaultOptions)).format(
 		value
 	);
+}
+
+/** Formats a date range */
+export function rangeDateFmt<TRange extends DateRange>(
+	range: TRange,
+	options: Intl.DateTimeFormatOptions = { dateStyle: 'long', timeStyle: undefined }
+) {
+	return `${dateFmt(range.start, options)} - ${dateFmt(range.end, options)}`;
 }
 
 /** List formatter */

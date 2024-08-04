@@ -1,4 +1,6 @@
 import {
+	billingPeriods,
+	energyBills,
 	insertMeasuringDeviceSchema,
 	measuringDevices,
 	occupants,
@@ -40,8 +42,19 @@ export const load: Load = async ({ params }) => {
 		error(404, 'Subjekt nenalezen');
 	}
 
+	const billingPeriodsWithBills = await db.query.billingPeriods.findMany({
+		where: eq(billingPeriods.buildingId, occupant.buildingId),
+		with: {
+			energyBills: {
+				where: eq(energyBills.occupantId, occupant.id)
+			}
+		}
+	});
+	logger.debug({ billingPeriodsWithBills }, 'Billing periods with bills');
+
 	return {
 		occupant,
+		billingPeriodsWithBills,
 		// Set `errors: false` to prevent displaying error messages in the initial form load
 		insertMeasuringDeviceForm: await superValidate(zod(addDeviceFormSchema), { errors: false }),
 		editOccupantForm: await superValidate(occupant, zod(createOccupantFormSchema)),

@@ -16,7 +16,7 @@ import { db } from '$lib/server/db/client';
 import { assertSuccess } from '$lib/utils';
 import { fail, redirect, type Actions, type Load } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
-import { superValidate } from 'sveltekit-superforms';
+import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
@@ -133,7 +133,7 @@ export const actions: Actions = {
 		} catch (error) {
 			logger.error(error);
 			await db.delete(billingPeriods).where(eq(billingPeriods.id, billingPeriod.id));
-			return fail(500, { form });
+			return message(form, 'Nepodařilo se vytvořit vyúčtování.', { status: 500 });
 		}
 
 		return redirect(302, `/bills/${billingPeriod.id}`);

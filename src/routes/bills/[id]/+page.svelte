@@ -7,7 +7,7 @@
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
-	import { currencyFmt, dateFmt, numberFmt } from '$lib/i18n/helpers';
+	import { currencyFmt, numberFmt, rangeDateFmt } from '$lib/i18n/helpers';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
 	import { Person as PersonIcon } from 'svelte-radix';
 
@@ -19,11 +19,17 @@
 	const sumAllBills = (occupant: OccupantItem): number => {
 		return occupant.energyBills.reduce((acc, bill) => acc + bill.totalCost, 0);
 	};
+	// Checks whether an occupant has any measured consumption bills
 	const hasMeasuredBills = (occupant: OccupantItem): boolean => {
 		return occupant.energyBills.some((bill) => bill.totalConsumption !== null);
 	};
+	// Checks whether an occupant has any unmeasured consumption bills
 	const hasUnmeasuredBills = (occupant: OccupantItem): boolean => {
 		return occupant.energyBills.some((bill) => bill.totalConsumption === null);
+	};
+	// Gets the billed area for an occupant or falls back to the total area
+	const getBilledArea = (occupant: OccupantItem): number => {
+		return occupant.energyBills.at(0)?.billedArea ?? occupant.squareMeters;
 	};
 </script>
 
@@ -31,9 +37,7 @@
 	<section slot="header">
 		<Header2>Vyúčtování</Header2>
 		<Header1>
-			{dateFmt(data.billingPeriod.startDate, { dateStyle: 'long', timeStyle: undefined })}
-			-
-			{dateFmt(data.billingPeriod.endDate, { dateStyle: 'long', timeStyle: undefined })}
+			{rangeDateFmt({ start: data.billingPeriod.startDate, end: data.billingPeriod.endDate })}
 		</Header1>
 	</section>
 	<DateMetadata created={data.billingPeriod.created} />
@@ -198,7 +202,7 @@
 													<Table.Row>
 														<Table.Head class="w-[200px]">Výměra</Table.Head>
 														<Table.Cell>
-															{numberFmt(occupant.squareMeters)}&nbsp;m²
+															{numberFmt(getBilledArea(occupant))}&nbsp;m²
 														</Table.Cell>
 													</Table.Row>
 													{#if occupant.heatingFixedCostShare !== null}
