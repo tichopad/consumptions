@@ -12,7 +12,6 @@ import {
 	getUnmeasuredBills,
 	hasDevices
 } from './utils';
-import { logger } from '$lib/logger';
 
 /** Describes incorrect input or errors related to the input */
 export class CalculationInputError extends Error {}
@@ -134,23 +133,6 @@ export function calculateBills(
 	// If there's a fixed part to the cost, it's only covered by occupants with measured consumption
 	const remainingCostToSplit = variableCost.minus(totalCostForMeasuredConsumption);
 
-	logger.info('Unit cost: %d', costPerUnit);
-	logger.info('Total cost: %d', totalCost);
-	logger.info('Total measured cost: %d', totalCostForMeasuredConsumption);
-	logger.info('Fixed cost: %d', fixedCost ?? 0);
-	logger.info('Remaining cost to split: %d', remainingCostToSplit);
-
-	/**
-	 *
-dev: [13:10:33.044] INFO (3662): Unit cost: 1001
-dev: [13:10:33.044] INFO (3662): Total cost: 123123
-dev: [13:10:33.044] INFO (3662): Total measured cost: 246246
-dev: [13:10:33.044] INFO (3662): Fixed cost: 0
-dev: [13:10:33.044] INFO (3662): Remaining cost to split: -123123
-	 */
-
-	// TODO: why do we get here?
-	// to replicate: create bill with heating total cost 40k, fixed 20k, cons. 50, owner 1 cons. 10 and owner 2 cons. 30
 	// If the remaining cost to split is negative, return an error
 	if (remainingCostToSplit.isNegative()) {
 		return err(
