@@ -8,7 +8,7 @@
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
-	import { currencyFmt, dateFmt, energyUnitFmt, rangeDateFmt } from '$lib/i18n/helpers';
+	import { currencyFmt, dateFmt, energyUnitFmt, startEndDateFmt } from '$lib/i18n/helpers';
 	import { labelsByEnergyType, type EnergyType } from '$lib/models/common';
 	import type { EnergyBill } from '$lib/models/energy-bill';
 	import type { MeasuringDevice } from '$lib/models/measuring-device';
@@ -188,7 +188,7 @@
 						{#each data.billingPeriodsWithBills as billingPeriod (billingPeriod.id)}
 							<Table.Row class="cursor-pointer" on:click={() => goto(`/bills/${billingPeriod.id}`)}>
 								<Table.Cell class="font-medium">
-									{rangeDateFmt({ start: billingPeriod.startDate, end: billingPeriod.endDate })}
+									{startEndDateFmt(billingPeriod)}
 								</Table.Cell>
 								{@const electricityBill = getBill(billingPeriod.energyBills, 'electricity')}
 								{@const waterBill = getBill(billingPeriod.energyBills, 'water')}

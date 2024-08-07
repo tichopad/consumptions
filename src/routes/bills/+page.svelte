@@ -1,93 +1,143 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
-	import * as Table from '$lib/components/ui/table';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
-	import { currencyFmt, dateFmt } from '$lib/i18n/helpers';
-	import type { EnergyType } from '$lib/models/common';
+	import Page from '$lib/components/ui/typography/page.svelte';
+	import { dateFmt } from '$lib/i18n/helpers';
+	import type { BillingPeriod } from '$lib/models/billing-period';
+	import { Archive as ArchiveIcon, Reset as ResetIcon, Trash as TrashIcon } from 'svelte-radix';
+	import ArchiveBillingPeriodForm from './archive-billing-period-form.svelte';
+	import BillsList from './bills-list.svelte';
+	import DeleteBillingPeriodForm from './delete-billing-period-form.svelte';
+	import RestoreBillingPeriodForm from './restore-billing-period-form.svelte';
 
 	export let data;
 
-	// FIXME: there's a better way to get this server-side
-	type LoadedBillingPeriod = (typeof data)['allBillingPeriods'][number];
-	const getTotalCost = (
-		billingPeriod: LoadedBillingPeriod,
-		energyType: EnergyType
-	): number | null => {
-		for (const bill of billingPeriod.energyBills) {
-			if (bill.buildingId !== null && bill.energyType === energyType) {
-				return bill.totalCost;
-			}
-		}
-		return null;
+	// The selected billing period for the archive and delete dialogs
+	let selectedBillingPeriod: BillingPeriod | null = null;
+
+	// Controls whether the archive dialog is open
+	let archivedDialogOpen = false;
+	// Controls whether the restore dialog is open
+	let restoredDialogOpen = false;
+	// Controls whether the delete dialog is open
+	let deletedDialogOpen = false;
+
+	// Opens the archive billing period dialog
+	const archiveBillingPeriod = (billingPeriod: BillingPeriod) => {
+		selectedBillingPeriod = billingPeriod;
+		archivedDialogOpen = true;
+	};
+	// Opens the restore billing period dialog
+	const restoreBillingPeriod = (billingPeriod: BillingPeriod) => {
+		selectedBillingPeriod = billingPeriod;
+		restoredDialogOpen = true;
+	};
+	// Opens the delete billing period dialog
+	const deleteBillingPeriod = (billingPeriod: BillingPeriod) => {
+		selectedBillingPeriod = billingPeriod;
+		deletedDialogOpen = true;
 	};
 </script>
 
-<div class="bg-stone-50 flex justify-center items-stretch">
-	<main
-		class="bg-stone-50 flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 lg:max-w-5xl"
-	>
-		<div class="flex justify-between items-center">
-			<Header1>Vyúčtování</Header1><Button href="/bills/create">Vytvořit</Button>
-		</div>
-		<Card.Root>
-			<Card.Content class="pt-6">
-				{#if data.allBillingPeriods.length === 0}
-					<p class="text-muted-foreground">
-						Zatím nebyly vytvořeny žádná vyúčtování. Stiskněte na tlačítko <i>Vytvořit</i> pro přidání
-						prvního.
-					</p>
-				{:else}
-					<Table.Root>
-						<!-- Header -->
-						<Table.Header>
-							<Table.Row>
-								<Table.Head class="w-[200px]">Od</Table.Head>
-								<Table.Head class="w-[200px]">Do</Table.Head>
-								<Table.Head>Celkem za elektřinu</Table.Head>
-								<Table.Head>Celkem za teplo</Table.Head>
-								<Table.Head>Celkem za vodu</Table.Head>
-							</Table.Row>
-						</Table.Header>
+<!-- Billing period archive form -->
+<ArchiveBillingPeriodForm
+	billingPeriod={selectedBillingPeriod}
+	bind:open={archivedDialogOpen}
+	data={data.archiveBillingPeriodForm}
+/>
 
-						<!-- Body -->
-						<Table.Body>
-							{#each data.allBillingPeriods as billingPeriod (billingPeriod.id)}
-								<Table.Row
-									class="cursor-pointer"
-									on:click={() => goto(`/bills/${billingPeriod.id}`)}
-								>
-									<Table.Cell class="font-medium">
-										{dateFmt(billingPeriod.startDate, { dateStyle: 'long', timeStyle: undefined })}
-									</Table.Cell>
-									<Table.Cell class="font-medium">
-										{dateFmt(billingPeriod.endDate, { dateStyle: 'long', timeStyle: undefined })}
-									</Table.Cell>
-									<Table.Cell>
-										{@const totalElectricity = getTotalCost(billingPeriod, 'electricity')}
-										{#if totalElectricity !== null}
-											{currencyFmt(totalElectricity)}
-										{/if}
-									</Table.Cell>
-									<Table.Cell>
-										{@const totalWater = getTotalCost(billingPeriod, 'water')}
-										{#if totalWater !== null}
-											{currencyFmt(totalWater)}
-										{/if}
-									</Table.Cell>
-									<Table.Cell>
-										{@const totalHeating = getTotalCost(billingPeriod, 'heating')}
-										{#if totalHeating !== null}
-											{currencyFmt(totalHeating)}
-										{/if}
-									</Table.Cell>
-								</Table.Row>
-							{/each}
-						</Table.Body>
-					</Table.Root>
-				{/if}
-			</Card.Content>
-		</Card.Root>
-	</main>
-</div>
+<!-- Billing period restore form -->
+<RestoreBillingPeriodForm
+	billingPeriod={selectedBillingPeriod}
+	bind:open={restoredDialogOpen}
+	data={data.restoreBillingPeriodForm}
+/>
+
+<!-- Billing period delete form -->
+<DeleteBillingPeriodForm
+	billingPeriod={selectedBillingPeriod}
+	bind:open={deletedDialogOpen}
+	data={data.deleteBillingPeriodForm}
+/>
+
+<Page>
+	<section slot="header">
+		<div class="flex justify-between items-center">
+			<Header1>Vyučtování</Header1>
+			<Button href="/bills/create">Vytvořit</Button>
+		</div>
+	</section>
+	<Tabs.Root value="unarchived">
+		<Tabs.List>
+			<Tabs.Trigger value="unarchived">Aktivní</Tabs.Trigger>
+			<Tabs.Trigger value="archived">Archivované</Tabs.Trigger>
+		</Tabs.List>
+		<Tabs.Content value="unarchived">
+			<Card.Root>
+				<Card.Content class="pt-6">
+					<BillsList
+						actions={[
+							{
+								label: 'Archivovat',
+								title: 'Archivovat vyúčtování',
+								icon: ArchiveIcon,
+								onClick: archiveBillingPeriod
+							}
+						]}
+						billingPeriods={data.billingPeriodsWithEnergyBills}
+						emptyMessage="Zatím nebyly vytvořeny žádná vyúčtování. Stiskněte na tlačítko Vytvořit pro přidání prvního."
+						extraColumns={[
+							{
+								label: 'Vytvořeno',
+								value: (billingPeriod) => {
+									return dateFmt(billingPeriod.created, {
+										dateStyle: 'medium',
+										timeStyle: undefined
+									});
+								}
+							}
+						]}
+					/>
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+		<Tabs.Content value="archived">
+			<Card.Root>
+				<Card.Content class="pt-6">
+					<BillsList
+						actions={[
+							{
+								label: 'Obnovit',
+								title: 'Obnovit vyúčtování',
+								icon: ResetIcon,
+								onClick: restoreBillingPeriod
+							},
+							{
+								label: 'Vymazat',
+								title: 'Vymazat vyúčtování',
+								icon: TrashIcon,
+								onClick: deleteBillingPeriod
+							}
+						]}
+						billingPeriods={data.archivedBillingPeriodsWithEnergyBills}
+						emptyMessage="Zatím nebyly žádné subjekty archivovány."
+						extraColumns={[
+							{
+								label: 'Vymazat',
+								value: (billingPeriod) => {
+									if (billingPeriod.archived === null) return '-';
+									return dateFmt(billingPeriod.archived, {
+										dateStyle: 'medium',
+										timeStyle: undefined
+									});
+								}
+							}
+						]}
+					/>
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+	</Tabs.Root>
+</Page>

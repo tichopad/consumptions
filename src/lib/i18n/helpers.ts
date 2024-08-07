@@ -1,4 +1,3 @@
-import type { DateRange } from '$lib/common-types';
 import { unitsByEnergyType, type EnergyType } from '$lib/models/common';
 
 export const DEFAULT_LOCALE = 'cs-CZ';
@@ -9,7 +8,7 @@ function mergeOptions<TOptions>(options: TOptions | undefined, defaultOptions: T
 }
 
 /** General number formatter */
-export function numberFmt(value: number, options?: Intl.NumberFormatOptions) {
+export function numberFmt(value: number, options?: Intl.NumberFormatOptions): string {
 	const defaultOptions: Intl.NumberFormatOptions = {
 		maximumFractionDigits: 2
 	};
@@ -18,7 +17,7 @@ export function numberFmt(value: number, options?: Intl.NumberFormatOptions) {
 }
 
 /** Currency formatter */
-export function currencyFmt(value: number) {
+export function currencyFmt(value: number): string {
 	return numberFmt(value, {
 		currency: 'CZK',
 		style: 'currency'
@@ -26,7 +25,7 @@ export function currencyFmt(value: number) {
 }
 
 /** Energy unit formatter */
-export function energyUnitFmt(value: number, energyType: EnergyType) {
+export function energyUnitFmt(value: number, energyType: EnergyType): string {
 	const number = numberFmt(value, {
 		style: 'decimal',
 		minimumFractionDigits: 0,
@@ -36,7 +35,7 @@ export function energyUnitFmt(value: number, energyType: EnergyType) {
 }
 
 /** Date formatter */
-export function dateFmt(value: Date | number, options?: Intl.DateTimeFormatOptions) {
+export function dateFmt(value: Date | number, options?: Intl.DateTimeFormatOptions): string {
 	const defaultOptions: Intl.DateTimeFormatOptions = {
 		dateStyle: 'full',
 		timeStyle: 'short'
@@ -47,16 +46,26 @@ export function dateFmt(value: Date | number, options?: Intl.DateTimeFormatOptio
 	);
 }
 
-/** Formats a date range */
-export function rangeDateFmt<TRange extends DateRange>(
+/** Common start/end date range used by database entities */
+type StartEndDateRange = {
+	startDate: Date;
+	endDate: Date;
+};
+
+/**
+ * Formats a start/end date range
+ * @param range The range to format
+ * @param options The options to use for formatting the date
+ */
+export function startEndDateFmt<TRange extends StartEndDateRange>(
 	range: TRange,
 	options: Intl.DateTimeFormatOptions = { dateStyle: 'long', timeStyle: undefined }
-) {
-	return `${dateFmt(range.start, options)} - ${dateFmt(range.end, options)}`;
+): string {
+	return `${dateFmt(range.startDate, options)} - ${dateFmt(range.endDate, options)}`;
 }
 
 /** List formatter */
-export function listFmt(value: Iterable<string>, options?: Intl.ListFormatOptions) {
+export function listFmt(value: Iterable<string>, options?: Intl.ListFormatOptions): string {
 	const defaultOptions: Intl.ListFormatOptions = {
 		style: 'long',
 		type: 'conjunction'

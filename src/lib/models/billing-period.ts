@@ -1,9 +1,15 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import { metadataColumns, primaryIdColumn, type ID } from './common';
-import { buildings } from './building';
 import { relations } from 'drizzle-orm';
-import { energyBills } from './energy-bill';
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createSelectSchema } from 'drizzle-zod';
+import { buildings } from './building';
+import {
+	archiveColumns,
+	metadataColumns,
+	primaryIdColumn,
+	softDeleteColumns,
+	type ID
+} from './common';
+import { energyBills } from './energy-bill';
 
 // -- Table definition --
 
@@ -16,6 +22,8 @@ export const billingPeriods = sqliteTable('billingPeriods', {
 	id: primaryIdColumn,
 	// Meta
 	...metadataColumns,
+	...softDeleteColumns,
+	...archiveColumns,
 	// Date
 	startDate: integer('startDate', { mode: 'timestamp' }).notNull(),
 	endDate: integer('endDate', { mode: 'timestamp' }).notNull(),

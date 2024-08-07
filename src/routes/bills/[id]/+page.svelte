@@ -7,7 +7,7 @@
 	import Header1 from '$lib/components/ui/typography/header1.svelte';
 	import Header2 from '$lib/components/ui/typography/header2.svelte';
 	import Page from '$lib/components/ui/typography/page.svelte';
-	import { currencyFmt, numberFmt, rangeDateFmt } from '$lib/i18n/helpers';
+	import { currencyFmt, numberFmt, startEndDateFmt } from '$lib/i18n/helpers';
 	import { labelsByEnergyType, unitsByEnergyType } from '$lib/models/common';
 	import { Person as PersonIcon } from 'svelte-radix';
 
@@ -36,9 +36,7 @@
 <Page>
 	<section slot="header">
 		<Header2>Vyúčtování</Header2>
-		<Header1>
-			{rangeDateFmt({ start: data.billingPeriod.startDate, end: data.billingPeriod.endDate })}
-		</Header1>
+		<Header1>{startEndDateFmt(data.billingPeriod)}</Header1>
 	</section>
 	<DateMetadata created={data.billingPeriod.created} />
 	<Card.Root>
