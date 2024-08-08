@@ -38,7 +38,7 @@
 		<Header2>Vyúčtování</Header2>
 		<Header1>{startEndDateFmt(data.billingPeriod)}</Header1>
 	</section>
-	<DateMetadata created={data.billingPeriod.created} />
+	<DateMetadata archived={data.billingPeriod.archived} created={data.billingPeriod.created} />
 	<Card.Root>
 		<Card.Header>
 			<Card.Title><h3>Celkový náklad a spotřeba</h3></Card.Title>

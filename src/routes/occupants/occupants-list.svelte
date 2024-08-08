@@ -31,7 +31,7 @@
 		onClick: (occupant: Occupant) => void;
 	};
 	/** Actions to display in the last column */
-	export let actions: Action[];
+	export let actions: Action[] | undefined = undefined;
 
 	type ExtraColumn = {
 		label: string;
@@ -108,37 +108,39 @@
 					{#each extraColumns as column}
 						<Table.Cell>{column.value(occupant)}</Table.Cell>
 					{/each}
-					<Table.Cell>
-						<DropdownMenu.Root>
-							<DropdownMenu.Trigger asChild let:builder>
-								<Button
-									aria-haspopup="true"
-									size="icon"
-									variant="ghost"
-									builders={[builder]}
-									on:click={(event) => event.stopPropagation()}
-								>
-									<DotsHorizontalIcon class="h-4 w-4" />
-									<span class="sr-only">Otevřít nebo zavřít menu</span>
-								</Button>
-							</DropdownMenu.Trigger>
-							<DropdownMenu.Content align="end">
-								<DropdownMenu.Label class="sr-only">Akce</DropdownMenu.Label>
-								{#each actions as action}
-									<DropdownMenu.Item
-										class="hover:cursor-pointer flex gap-1 items-center"
-										title={action.title}
-										on:click={() => action.onClick(occupant)}
+					{#if actions !== undefined}
+						<Table.Cell>
+							<DropdownMenu.Root>
+								<DropdownMenu.Trigger asChild let:builder>
+									<Button
+										aria-haspopup="true"
+										size="icon"
+										variant="ghost"
+										builders={[builder]}
+										on:click={(event) => event.stopPropagation()}
 									>
-										{#if action.icon !== undefined}
-											<Icon icon={action.icon} />
-										{/if}
-										{action.label}
-									</DropdownMenu.Item>
-								{/each}
-							</DropdownMenu.Content>
-						</DropdownMenu.Root>
-					</Table.Cell>
+										<DotsHorizontalIcon class="h-4 w-4" />
+										<span class="sr-only">Otevřít nebo zavřít menu</span>
+									</Button>
+								</DropdownMenu.Trigger>
+								<DropdownMenu.Content align="end">
+									<DropdownMenu.Label class="sr-only">Akce</DropdownMenu.Label>
+									{#each actions as action}
+										<DropdownMenu.Item
+											class="hover:cursor-pointer flex gap-1 items-center"
+											title={action.title}
+											on:click={() => action.onClick(occupant)}
+										>
+											{#if action.icon !== undefined}
+												<Icon icon={action.icon} />
+											{/if}
+											{action.label}
+										</DropdownMenu.Item>
+									{/each}
+								</DropdownMenu.Content>
+							</DropdownMenu.Root>
+						</Table.Cell>
+					{/if}
 				</Table.Row>
 			{/each}
 		</Table.Body>
