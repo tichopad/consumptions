@@ -1,3 +1,4 @@
+import { logger } from '$lib/logger';
 import {
 	billingPeriods,
 	energyBills,
@@ -14,10 +15,9 @@ import { eq } from 'drizzle-orm';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { createOccupantFormSchema } from '../create-edit-form-schema';
+import { addDeviceFormSchema } from './add-device-form-schema';
 import { deleteDeviceFormSchema } from './delete-device-form-schema';
 import { editDeviceFormSchema } from './edit-device-form-schema';
-import { addDeviceFormSchema } from './add-device-form-schema';
-import { logger } from '$lib/logger';
 
 export const load: Load = async ({ params }) => {
 	const parsed = selectOccupantSchema.shape.id.safeParse(params.id);
@@ -42,13 +42,16 @@ export const load: Load = async ({ params }) => {
 		error(404, 'Subjekt nenalezen');
 	}
 
-	const billingPeriodsWithBills = await db.query.billingPeriods.findMany({
+	const billingPeriodsWithBillsRaw = await db.query.billingPeriods.findMany({
 		where: eq(billingPeriods.buildingId, occupant.buildingId),
 		with: {
 			energyBills: {
 				where: eq(energyBills.occupantId, occupant.id)
 			}
 		}
+	});
+	const billingPeriodsWithBills = billingPeriodsWithBillsRaw.filter((bp) => {
+		return bp.energyBills.length > 0;
 	});
 	logger.debug({ billingPeriodsWithBills }, 'Billing periods with bills');
 
